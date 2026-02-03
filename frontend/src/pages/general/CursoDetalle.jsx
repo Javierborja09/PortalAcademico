@@ -7,16 +7,16 @@ const CursoDetalle = ({ isOpen, onClose, curso, horarios }) => {
     return (
         <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
             {/* Overlay */}
-            <div 
+            <div
                 className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm animate-fadeIn"
                 onClick={onClose}
             />
-            
+
             {/* Modal Content */}
             <div className="relative bg-white w-full max-w-lg rounded-[2.5rem] shadow-2xl overflow-hidden animate-slideUp">
                 {/* Header del Modal */}
                 <div className="bg-slate-900 p-8 text-white relative">
-                    <button 
+                    <button
                         onClick={onClose}
                         className="absolute top-6 right-6 p-2 hover:bg-white/10 rounded-full transition-colors"
                     >
@@ -31,7 +31,41 @@ const CursoDetalle = ({ isOpen, onClose, curso, horarios }) => {
                 </div>
 
                 {/* Cuerpo del Modal: Horarios */}
-                <div className="p-8">
+                <div className="p-8 max-h-100 overflow-y-auto pr-2">
+
+                    {/* ===== Anuncios del curso ===== */}
+                    <div className="mb-10">
+                        <div className="flex items-center justify-between mb-4">
+                            <h3 className="font-black text-slate-800 uppercase text-xs tracking-widest">
+                                Anuncios
+                            </h3>
+
+                            {curso.esDocente && (
+                                <button className="px-4 py-2 text-[10px] font-black uppercase tracking-widest
+                    bg-blue-600 text-white rounded-xl hover:bg-blue-700">
+                                    + Crear anuncio
+                                </button>
+                            )}
+                        </div>
+
+                        <div className="space-y-4 max-h-60 overflow-y-auto pr-2">
+                            <div className="p-4 bg-blue-50 border border-blue-100 rounded-2xl">
+                                <p className="text-sm font-black text-slate-800">
+                                    Bienvenidos al curso
+                                </p>
+                                <p className="text-xs text-slate-600 mt-1">
+                                    Recuerden revisar el sílabo antes de la próxima clase.
+                                </p>
+                                <p className="text-[10px] text-slate-400 mt-2 uppercase font-bold">
+                                    Publicado hoy
+                                </p>
+                            </div>
+                             
+                        </div>
+                    </div>
+
+                    {/* ===== Horarios ===== */}
+
                     <div className="flex items-center gap-2 mb-6">
                         <CalendarDays className="text-slate-400" size={18} />
                         <h3 className="font-black text-slate-800 uppercase text-xs tracking-widest">Cronograma Semanal</h3>
@@ -66,7 +100,7 @@ const CursoDetalle = ({ isOpen, onClose, curso, horarios }) => {
                         )}
                     </div>
 
-                    <button 
+                    <button
                         onClick={onClose}
                         className="w-full mt-8 py-4 bg-slate-100 hover:bg-slate-200 text-slate-600 rounded-2xl font-black uppercase text-[10px] tracking-[0.2em] transition-all"
                     >
