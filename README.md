@@ -20,133 +20,85 @@
 - 🍃 **Spring Boot 3.x**
 - 🔐 **Spring Security + JWT**
 - 🗄️ **MySQL 8.x**
-- 📦 **Maven**
+- 📦 **Maven (mvnw)**
 
 ### Frontend
 - ⚛️ **React 18.x**
 - 🎨 **Tailwind CSS**
 - ⚡ **Vite**
 - 🔗 **Axios**
-- 🧭 **React Router**
+- 🧭 **Lucide React** (Iconografía moderna)
 
 ---
 
 ## 📁 Estructura del Proyecto
 
+Basada en la arquitectura de carpetas del repositorio:
+
 ```
 PortalAcademico/
 │
-├── 📂 backend/           # Spring Boot Application
-│   ├── 📂 src/
-│   ├── 📄 pom.xml
-│   └── 📄 application.properties
-│
-├── 📂 frontend/          # React Application
-│   ├── 📂 src/
-│   ├── 📄 package.json
-│   └── 📄 vite.config.js
-│
-└── 📂 database/          # SQL Scripts
-    └── 📄 schema.sql
+├── 📂 backend/          # API REST con Spring Boot
+├── 📂 frontend/         # Interfaz de usuario con React
+├── 📂 database/         # Script de base de datos (script.sql)
+├── 📂 uploads/          # Almacenamiento local de imágenes de perfil
+├── 📂 docs/             # Documentación y Diagramas ER
+└── 📄 README.md
 ```
 
 ---
 
-## 🚀 Instalación
+## 🚀 Instalación y Configuración
 
 ### 1️⃣ Clonar el Repositorio
-
 ```bash
 git clone https://github.com/tu-usuario/PortalAcademico.git
 cd PortalAcademico
 ```
 
 ### 2️⃣ Configurar Base de Datos
+Dado que el archivo `script.sql` ya contiene la lógica de creación de la base de datos `blackboard_db` y sus tablas, solo debes ejecutar:
 
 ```bash
-# Crear la base de datos en MySQL
-mysql -u root -p
+cd database
+mysql -u root -p < script.sql
 ```
 
-```sql
-CREATE DATABASE blackboard_db;
-EXIT;
-```
+### 3️⃣ Configurar e Iniciar Backend
+Asegúrate de configurar tus credenciales en `backend/src/main/resources/application.properties`. Luego inicia el servidor:
 
 ```bash
-# Cargar el schema
-mysql -u root -p blackboard_db < database/schema.sql
-```
-
-### 3️⃣ Configurar Backend
-
-Editar `backend/src/main/resources/application.properties`:
-
-```properties
-spring.application.name=portal-academico
-
-# Conexión a Base de Datos 
-spring.datasource.url=jdbc:mysql://localhost:3306/blackboard_db?createDatabaseIfNotExist=true&serverTimezone=UTC
-spring.datasource.username=root
-spring.datasource.password=TU_PASSWORD_AQUI
-spring.datasource.driver-class-name=com.mysql.cj.jdbc.Driver
-
-# JPA / Hibernate Config
-spring.jpa.hibernate.ddl-auto=update
-spring.jpa.show-sql=true
-spring.jpa.properties.hibernate.dialect=org.hibernate.dialect.MySQLDialect
-
-# Seguridad JWT
-jwt.secret=7b2f9a3c5e8d1f4a6b0c2e4f8a0d1c3b5e7f9a2b4c6d8e0f1a3b5c7d9e1f2a4b
-jwt.expiration=86400000
-
-# Ruta física para guardar las imágenes
-upload.path=${user.dir}/uploads/profiles/
-```
-
-**Iniciar el Backend:**
-
-```bash
-cd backend
+cd ../backend
 ./mvnw spring-boot:run
 ```
 
-El backend correrá en `http://localhost:8080`
+El backend correrá en `http://localhost:8080`.
 
-### 4️⃣ Configurar Frontend
+### 4️⃣ Configurar e Iniciar Frontend
+Desde una nueva terminal en la raíz del proyecto:
 
 ```bash
 cd frontend
-
-# Instalar dependencias
 npm install
-
-# Iniciar el servidor de desarrollo
 npm run dev
 ```
 
-El frontend correrá en `http://localhost:5173`
+El frontend correrá en `http://localhost:5173`.
 
 ---
 
-## 🎯 Uso
+## 📸 Características Principales
 
-Accede a la aplicación en tu navegador:
-
-```
-http://localhost:5173
-```
-
----
-
-## 📝 Licencia
-
-Este proyecto está bajo la Licencia MIT.
+- **Gestión Full-Stack**: Integración completa entre Spring Boot y React.
+- **Actualización Instantánea**: Los cambios en la foto de perfil se sincronizan en tiempo real en Sidebar y Navbar mediante eventos personalizados.
+- **Diseño Responsivo**: Tablas de usuarios que se transforman en tarjetas para una experiencia móvil fluida.
+- **Optimización de Medios**: Conversión automática de imágenes subidas a formato WebP para optimizar el almacenamiento y carga.
+- **Seguridad**: Gestión de accesos basada en roles (Admin, Docente, Alumno) mediante JWT.
 
 ---
 
 <div align="center">
 
-**Hecho con ❤️ para la gestión académica**
+Hecho con ❤️ para la gestión académica
 
 </div>
