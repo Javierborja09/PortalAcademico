@@ -108,7 +108,7 @@ upload.path=${user.dir}/uploads/profiles/
 
 ```bash
 cd backend
-mvn spring-boot:run
+./mvnw spring-boot:run
 ```
 
 El backend correrá en `http://localhost:8080`
