@@ -15,6 +15,8 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
+import java.util.HashMap;
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -30,6 +32,22 @@ public class UsuarioController {
     @Value("${upload.path}")
     private String uploadDir;
 
+    @GetMapping("/listar")
+    @PreAuthorize("hasAuthority('admin')")
+    public ResponseEntity<?> listarUsuarios() {
+        try {
+            return ResponseEntity.ok(usuarioRepository.findAll());
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error al obtener usuarios: " + e.getMessage());
+        }
+    }
+
+    @GetMapping("/buscar")
+    @PreAuthorize("hasAuthority('admin')")
+    public ResponseEntity<?> buscarPorNombre(@RequestParam("nombre") String nombre) {
+        return ResponseEntity.ok(usuarioRepository.findByNombreContainingIgnoreCase(nombre));
+    }
+
     @PostMapping("/registrar")
     @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<?> registrarUsuario(
@@ -40,7 +58,7 @@ public class UsuarioController {
             @RequestParam("rol") String rol,
             @RequestParam(value = "foto", required = false) MultipartFile foto) {
 
-        if (usuarioRepository.findByCorreo(correo).isPresent()) 
+        if (usuarioRepository.findByCorreo(correo).isPresent())
             return ResponseEntity.badRequest().body("Error: El correo ya existe.");
 
         Usuario u = new Usuario();
@@ -52,9 +70,9 @@ public class UsuarioController {
 
         // Guardado dinámico con conversión
         String folderName = Paths.get(uploadDir).getFileName().toString();
-        u.setFoto_perfil((foto != null && !foto.isEmpty()) 
-            ? guardarImagenWebP(foto) 
-            : "/" + folderName + "/default.png");
+        u.setFoto_perfil((foto != null && !foto.isEmpty())
+                ? guardarImagenWebP(foto)
+                : "/" + folderName + "/default.png");
 
         usuarioRepository.save(u);
         return ResponseEntity.ok("Registrado con éxito.");
@@ -71,18 +89,23 @@ public class UsuarioController {
         Usuario usuario = usuarioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
 
-        if (correo != null && !correo.isEmpty()) usuario.setCorreo(correo);
-        if (password != null && !password.isEmpty()) usuario.setPassword(passwordEncoder.encode(password));
+        if (correo != null && !correo.isEmpty())
+            usuario.setCorreo(correo);
+        if (password != null && !password.isEmpty())
+            usuario.setPassword(passwordEncoder.encode(password));
 
         if (foto != null && !foto.isEmpty()) {
-            if (usuario.getFoto_perfil() != null && !usuario.getFoto_perfil().contains("default.png")) {
-                eliminarArchivoFisico(usuario.getFoto_perfil());
-            }
+            eliminarArchivoFisico(usuario.getFoto_perfil());
             usuario.setFoto_perfil(guardarImagenWebP(foto));
         }
 
         usuarioRepository.save(usuario);
-        return ResponseEntity.ok("Perfil actualizado.");
+
+        Map<String, String> respuesta = new HashMap<>();
+        respuesta.getOrDefault("mensaje", "Perfil actualizado");
+        respuesta.put("foto", usuario.getFoto_perfil());
+
+        return ResponseEntity.ok(respuesta);
     }
 
     /**
@@ -93,9 +116,10 @@ public class UsuarioController {
             // 1. Generar nombre único con extensión .webp
             String nombreBase = System.currentTimeMillis() + "_perfil";
             String nombreArchivoWebp = nombreBase + ".webp";
-            
+
             Path rutaPath = Paths.get(uploadDir).toAbsolutePath();
-            if (!Files.exists(rutaPath)) Files.createDirectories(rutaPath);
+            if (!Files.exists(rutaPath))
+                Files.createDirectories(rutaPath);
 
             // 2. Leer la imagen original (sea JPG, PNG, etc.)
             BufferedImage imagenOriginal = ImageIO.read(foto.getInputStream());
@@ -121,11 +145,21 @@ public class UsuarioController {
     }
 
     private void eliminarArchivoFisico(String rutaLogica) {
+        if (rutaLogica == null || rutaLogica.toLowerCase().contains("default")) {
+            System.out.println("Borrado cancelado: No se permite eliminar la imagen por defecto.");
+            return;
+        }
+
         try {
             String nombreArchivo = rutaLogica.substring(rutaLogica.lastIndexOf("/") + 1);
-            Files.deleteIfExists(Paths.get(uploadDir).resolve(nombreArchivo));
+            Path rutaCompleta = Paths.get(uploadDir).toAbsolutePath().resolve(nombreArchivo);
+            boolean eliminado = Files.deleteIfExists(rutaCompleta);
+
+            if (eliminado) {
+                System.out.println("Archivo eliminado físicamente: " + nombreArchivo);
+            }
         } catch (IOException e) {
-            System.err.println("Error eliminando archivo: " + e.getMessage());
+            System.err.println("Error al intentar eliminar archivo: " + e.getMessage());
         }
     }
 }

@@ -11,7 +11,7 @@ CREATE TABLE usuarios (
     correo VARCHAR(100) UNIQUE,
     password VARCHAR(255),
     rol ENUM('alumno', 'docente', 'admin') DEFAULT 'alumno',
-    foto_perfil VARCHAR(255) DEFAULT 'uploads/profiles/default.png'
+    foto_perfil VARCHAR(255) DEFAULT ''
 );
 
 -- 3. Tabla de Cursos (Con fechas de inicio y fin)
