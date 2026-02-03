@@ -11,7 +11,7 @@ CREATE TABLE usuarios (
     correo VARCHAR(100) UNIQUE,
     password VARCHAR(255),
     rol ENUM('alumno', 'docente', 'admin') DEFAULT 'alumno',
-    foto_perfil VARCHAR(255) DEFAULT ''
+    foto_perfil VARCHAR(255) DEFAULT '/profiles/default.webp'
 );
 
 -- 3. Tabla de Cursos (Con fechas de inicio y fin)
@@ -20,7 +20,7 @@ CREATE TABLE cursos (
     nombre_curso VARCHAR(100),
     codigo_curso VARCHAR(20) UNIQUE,
     id_docente INT,
-    imagen_portada VARCHAR(255) DEFAULT 'uploads/courses/default_course.png',
+    imagen_portada VARCHAR(255) DEFAULT '',
     fecha_inicio DATE,
     fecha_fin DATE,
     FOREIGN KEY (id_docente) REFERENCES usuarios(id_usuario)
