@@ -14,8 +14,7 @@ import PublicRoute from './components/PublicRoute';
 import MainLayout from './components/MainLayout';
 import RoleRoute from './components/RoleRoute'; // <--- IMPORTANTE
 import AulaVirtual from './pages/general/AulaVirtual';
-
-// ... dentro de las rutas protegidas
+import AulaSesion from './pages/general/AulaSesion';
 
 function App() {
   return (
@@ -26,22 +25,25 @@ function App() {
           <Route path="/" element={<Login />} />
         </Route>
 
-        {/* RUTAS PROTEGIDAS CON MAINLAYOUT */}
+        {/* RUTAS PROTEGIDAS */}
         <Route element={<ProtectedRoute />}>
+          
+          {/* 🟢 RUTA DE SESIÓN (FUERA DEL LAYOUT PARA PANTALLA COMPLETA) */}
+          <Route path="/aula-virtual/:id/sesion" element={<AulaSesion />} />
+
+          {/* RUTAS CON BARRA LATERAL (MAINLAYOUT) */}
           <Route element={<MainLayout />}> 
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/perfil" element={<Perfil />} />
-            
-            {/* Cursos es para todos (Admin, Docente, Alumno) */}
             <Route path="/cursos" element={<Cursos />} /> 
-<Route path="/aula-virtual/:id" element={<AulaVirtual />} />
-            {/* 🛡️ BLOQUEO DE RUTAS ADMINISTRATIVAS */}
+            <Route path="/aula-virtual/:id" element={<AulaVirtual />} />
+            
             <Route element={<RoleRoute allowedRoles={['admin']} />}>
               <Route path="/admin/usuarios" element={<Usuarios />} />
               <Route path="/admin/horarios" element={<Horarios />} />
             </Route>
-
           </Route>
+
         </Route>
 
         <Route path="*" element={<NotFound />} />
@@ -49,5 +51,4 @@ function App() {
     </Router>
   );
 }
-
 export default App;

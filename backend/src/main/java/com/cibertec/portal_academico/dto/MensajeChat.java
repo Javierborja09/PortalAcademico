@@ -1,0 +1,11 @@
+package com.cibertec.portal_academico.dto;
+
+import lombok.Data;
+
+@Data
+public class MensajeChat {
+    private String contenido;
+    private String remitente;
+    private String tipo; // "CHAT", "JOIN", "LEAVE"
+    private Integer cursoId;
+}

@@ -75,7 +75,7 @@ const Perfil = () => {
                         <div className="relative inline-block mb-6">
                             <div className="absolute -inset-2 bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-full opacity-30 blur-md"></div>
                             <img 
-                                src={preview || (user.foto && user.foto !== 'null' ? `${API_BASE}${user.foto}?t=${Date.now()}` : `${API_BASE}/uploads/profiles/default.png`)} 
+                                src={preview || (user.foto && user.foto !== 'null' ? `${API_BASE}${user.foto}?t=${Date.now()}` : `${API_BASE}/profiles/default.png`)} 
                                 alt="Avatar" 
                                 className="relative w-40 h-40 rounded-full object-cover border-4 border-slate-800 shadow-2xl"
                             />

@@ -1,32 +1,61 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
-import { User, Users, Info, ArrowLeft, Loader2, Mail, GraduationCap } from 'lucide-react';
+import { 
+    User, Users, Info, ArrowLeft, Loader2, 
+    GraduationCap, BookOpen, Video, Play, ExternalLink, ShieldAlert
+} from 'lucide-react';
 
-// IMPORTACIÓN DE SERVICIOS
 import { getCursoById } from '../../services/courseService';
 import { getIntegrantesCurso } from '../../services/matriculaService';
+import sesionService from '../../services/sesionService';
+
+import AulaBanner from './../../components/AulaBanner';
+import AulaIntegrantes from './../../components/AulaIntegrantes';
+import AulaDetalle from './../../components/AulaDetalle';
 
 const AulaVirtual = () => {
     const { id } = useParams();
     const navigate = useNavigate();
+    
     const [curso, setCurso] = useState(null);
     const [integrantes, setIntegrantes] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [sesionActiva, setSesionActiva] = useState(false);
     const [isInfoModalOpen, setIsInfoModalOpen] = useState(false);
     const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
+    const [errorAcceso, setErrorAcceso] = useState(false);
+
+    const rol = localStorage.getItem('rol')?.toLowerCase();
+    const usuarioNombre = localStorage.getItem('nombre') || 'Usuario';
+
+    useEffect(() => {
+        sesionService.conectar(id, (msg) => {
+            if (msg.tipo === "START_SESSION" || msg.tipo === "SESSION_IS_ACTIVE") {
+                setSesionActiva(true);
+            } else if (msg.tipo === "END_SESSION" || msg.tipo === "SESSION_IS_INACTIVE") {
+                setSesionActiva(false);
+            }
+        }, () => {
+            sesionService.verificarEstado(id);
+        });
+        return () => sesionService.desconectar();
+    }, [id]);
 
     useEffect(() => {
         const cargarDatosAula = async () => {
             try {
                 setLoading(true);
-                // Usamos los servicios en lugar de llamadas directas a la API
-                const dataCurso = await getCursoById(id);
+                setErrorAcceso(false);
+                const [dataCurso, dataIntegrantes] = await Promise.all([
+                    getCursoById(id),
+                    getIntegrantesCurso(id)
+                ]);
                 setCurso(dataCurso);
-                
-                const dataIntegrantes = await getIntegrantesCurso(id);
                 setIntegrantes(dataIntegrantes);
             } catch (error) {
-                console.error("Error al cargar aula virtual", error);
+                if (error.response?.status === 403 || error.response?.status === 401) {
+                    setErrorAcceso(true);
+                }
             } finally {
                 setLoading(false);
             }
@@ -34,144 +63,138 @@ const AulaVirtual = () => {
         cargarDatosAula();
     }, [id]);
 
+    const handleActionSesion = () => {
+        if (rol === 'docente' || rol === 'admin') {
+            if (!sesionActiva) sesionService.iniciarClase(id, usuarioNombre);
+            navigate(`/aula-virtual/${id}/sesion`);
+        } else if (sesionActiva) {
+            navigate(`/aula-virtual/${id}/sesion`);
+        }
+    };
+
+    if (errorAcceso) return (
+        <div className="min-h-[80vh] flex items-center justify-center p-4 w-full">
+            <div className="bg-slate-950 w-full max-w-4xl rounded-[2.5rem] md:rounded-[4rem] p-8 md:p-20 flex flex-col items-center justify-center shadow-2xl border border-white/5 animate-fadeIn">
+                <div className="p-6 md:p-8 bg-red-500/10 rounded-3xl md:rounded-[3rem] border border-red-500/20 mb-6 md:mb-8">
+                    <ShieldAlert size={50} className="text-red-500 md:w-20 md:h-20" />
+                </div>
+                <div className="text-center space-y-4 mb-8 md:mb-10">
+                    <h1 className="text-2xl md:text-4xl font-black uppercase tracking-tighter text-white">Acceso Restringido</h1>
+                    <p className="text-slate-400 font-bold text-xs md:text-sm uppercase tracking-widest max-w-md mx-auto leading-relaxed px-4">
+                        No estás matriculado en este curso o no tienes permisos de docente.
+                    </p>
+                </div>
+                <button 
+                    onClick={() => navigate('/cursos')}
+                    className="w-full md:w-auto px-10 py-4 md:py-5 bg-white text-slate-950 rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-xl"
+                >
+                    Volver a mis cursos
+                </button>
+            </div>
+        </div>
+    );
+
     if (loading) return (
-        <div className="h-screen flex flex-col items-center justify-center gap-4">
-            <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
-            <p className="text-slate-400 font-black uppercase tracking-widest text-xs text-center">
-                Sincronizando Aula Virtual...
-            </p>
+        <div className="h-[80vh] w-full flex flex-col items-center justify-center gap-4 text-blue-600">
+            <Loader2 className="w-10 h-10 animate-spin" />
+            <p className="font-black uppercase tracking-widest text-[10px]">Cargando Aula Virtual...</p>
         </div>
     );
 
     return (
-        <div className="animate-fadeIn pb-20">
-            {/* BOTÓN VOLVER */}
-            <button onClick={() => navigate(-1)} className="mb-6 flex items-center gap-2 text-slate-400 hover:text-blue-600 transition-colors font-bold text-sm group">
-                <ArrowLeft size={20} className="group-hover:-translate-x-1 transition-transform" />
-                Regresar a Cursos
-            </button>
-
-            {/* BANNER DINÁMICO */}
-            <div className="relative w-full h-64 md:h-80 rounded-[3rem] overflow-hidden shadow-2xl mb-10 border-4 border-white">
-                <img 
-                    src={curso?.imagenPortada ? `http://localhost:8080${curso.imagenPortada}` : "http://localhost:8080/courses/default.webp"} 
-                    className="w-full h-full object-cover"
-                    alt="Banner del curso"
-                    onError={(e) => { e.target.src = "http://localhost:8080/courses/default.webp"; }}
-                />
-                <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/40 to-transparent" />
-                
-                <div className="absolute bottom-10 left-10 right-10">
-                    <span className="bg-blue-600 text-white text-[10px] font-black px-4 py-1.5 rounded-full uppercase tracking-[0.2em] mb-4 inline-block border border-blue-400/30">
-                        {curso?.codigoCurso || 'CÓDIGO'}
-                    </span>
-                    <h1 className="text-4xl md:text-6xl font-black text-white tracking-tight leading-tight uppercase">
-                        {curso?.nombreCurso}
-                    </h1>
-                </div>
-            </div>
-
-            {/* PANEL DE ACCIONES RÁPIDAS */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Info del Profesor */}
-                <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center gap-6 group hover:shadow-xl transition-all duration-500">
-                    <div className="w-20 h-20 rounded-3xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500">
-                        <User size={32} strokeWidth={2.5} />
+        <div className="animate-fadeIn pb-20 w-full max-w-7xl mx-auto px-4 md:px-8">
+            <div className="flex items-center justify-between mb-6 md:mb-8 pt-4">
+                <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-400 hover:text-blue-600 font-bold text-xs md:text-sm group transition-all">
+                    <div className="p-2 rounded-xl bg-white shadow-sm group-hover:bg-blue-50">
+                        <ArrowLeft size={16} />
                     </div>
-                    <div>
-                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Docente Titular</p>
-                        <h3 className="text-xl font-black text-slate-800 uppercase">
-                            {curso?.docente ? `${curso.docente.nombre} ${curso.docente.apellido}` : 'Sin asignar'}
-                        </h3>
-                        <button 
-                            onClick={() => setIsInfoModalOpen(true)}
-                            className="mt-2 flex items-center gap-2 text-blue-600 font-bold text-sm hover:underline"
-                        >
-                            <Info size={16} /> Ver Información del Curso
-                        </button>
-                    </div>
-                </div>
-
-                {/* Botón Integrantes */}
-                <button 
-                    onClick={() => setIsUsersModalOpen(true)}
-                    className="bg-slate-900 p-8 rounded-[2.5rem] shadow-xl flex items-center justify-between group hover:bg-blue-600 transition-all duration-500"
-                >
-                    <div className="flex items-center gap-6 text-left">
-                        <div className="w-20 h-20 rounded-3xl bg-white/10 flex items-center justify-center text-white">
-                            <Users size={32} strokeWidth={2.5} />
-                        </div>
-                        <div>
-                            <p className="text-[10px] font-black text-white/50 uppercase tracking-widest mb-1">Comunidad</p>
-                            <h3 className="text-xl font-black text-white uppercase">Ver Integrantes</h3>
-                            <p className="text-white/40 text-xs font-bold uppercase">{integrantes.length} alumnos inscritos</p>
-                        </div>
-                    </div>
-                    <div className="w-12 h-12 rounded-full border-2 border-white/10 flex items-center justify-center text-white group-hover:bg-white group-hover:text-blue-600 transition-all">
-                        <ArrowLeft size={24} className="rotate-180" />
-                    </div>
+                    Regresar
                 </button>
             </div>
 
-            {/* --- MODALES --- */}
+            <AulaBanner curso={curso} />
 
-            {/* Modal de Información Académica */}
-            {isInfoModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fadeIn">
-                    <div className="bg-white w-full max-w-lg rounded-[3rem] p-10 relative shadow-2xl">
-                        <h2 className="text-2xl font-black text-slate-900 mb-6 flex items-center gap-3">
-                            <GraduationCap className="text-blue-600" /> Silabo y Detalles
-                        </h2>
-                        <div className="space-y-4 text-slate-600 font-medium">
-                            <p>Bienvenido al curso de <span className="font-black text-slate-900">{curso?.nombreCurso}</span>.</p>
-                            <p>Docente: <span className="font-bold text-slate-800">{curso?.docente ? `${curso.docente.nombre} ${curso.docente.apellido}` : 'Pendiente'}</span></p>
-                            <p>Ciclo lectivo: <span className="font-bold text-slate-800">2026-I</span></p>
+            {/* BANNER SESIÓN - Responsivo */}
+            <div className={`mb-8 md:mb-10 rounded-[2.5rem] md:rounded-[3rem] p-1 border shadow-2xl overflow-hidden relative transition-all duration-700 ${sesionActiva ? 'bg-emerald-950 border-emerald-500/30' : 'bg-slate-900 border-white/5'}`}>
+                {sesionActiva && <div className="absolute inset-0 bg-emerald-500/10 animate-pulse" />}
+                <div className="relative p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 text-white">
+                    <div className="flex flex-col md:flex-row items-center gap-4 md:gap-6">
+                        <div className={`w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl flex items-center justify-center shadow-lg transition-all duration-500 ${sesionActiva ? 'bg-emerald-500' : 'bg-white/10'}`}>
+                            <Video size={28} className="md:w-9 md:h-9" />
                         </div>
-                        <button onClick={() => setIsInfoModalOpen(false)} className="mt-8 w-full py-4 bg-slate-100 rounded-2xl font-black uppercase text-xs tracking-widest text-slate-500 hover:bg-slate-200 transition-all">
-                            Cerrar Ventana
+                        <div className="text-center md:text-left">
+                            <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight">
+                                {sesionActiva ? '¡Clase en vivo!' : 'Videoconferencia'}
+                            </h2>
+                            <p className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${sesionActiva ? 'text-emerald-400' : 'text-slate-400'}`}>
+                                {sesionActiva ? 'Hay una sesión activa' : 'Esperando al docente'}
+                            </p>
+                        </div>
+                    </div>
+
+                    <button 
+                        onClick={handleActionSesion}
+                        disabled={rol === 'alumno' && !sesionActiva}
+                        className={`w-full md:w-auto px-8 py-4 md:py-5 rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest transition-all flex items-center justify-center gap-3 shadow-xl ${
+                            (rol === 'docente' || sesionActiva) 
+                            ? 'bg-blue-600 text-white hover:bg-blue-500 active:scale-95' 
+                            : 'bg-white/5 text-white/20 cursor-not-allowed border border-white/5'
+                        }`}
+                    >
+                        {rol === 'docente' ? (
+                            <>{sesionActiva ? 'Reingresar' : 'Iniciar Clase'} <Play size={14} /></>
+                        ) : (
+                            <>{sesionActiva ? 'Unirse ahora' : 'Cerrada'} <ExternalLink size={14} /></>
+                        )}
+                    </button>
+                </div>
+            </div>
+
+            {/* GRID DE INFORMACIÓN - Responsivo (1 col en móvil, 2 en desktop) */}
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
+                <div className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center gap-4 md:gap-6 group hover:shadow-xl transition-all">
+                    <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500">
+                        <User size={28} className="md:w-8 md:h-8" strokeWidth={2.5} />
+                    </div>
+                    <div className="flex-1">
+                        <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Docente</p>
+                        <h3 className="text-lg md:text-xl font-black text-slate-800 uppercase leading-none break-words">
+                            {curso?.docente ? `${curso.docente.nombre} ${curso.docente.apellido}` : 'Sin asignar'}
+                        </h3>
+                        <button onClick={() => setIsInfoModalOpen(true)} className="mt-2 md:mt-3 flex items-center gap-2 text-blue-600 font-bold text-[10px] md:text-xs hover:underline uppercase">
+                            <Info size={12} /> Detalles
                         </button>
                     </div>
                 </div>
-            )}
 
-            {/* Modal de Integrantes */}
-            {isUsersModalOpen && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-950/60 backdrop-blur-md animate-fadeIn">
-                    <div className="bg-white w-full max-w-xl rounded-[3rem] overflow-hidden shadow-2xl">
-                        <div className="bg-slate-900 p-8 text-white flex justify-between items-center">
-                            <div>
-                                <h2 className="text-xl font-black uppercase tracking-tight">Compañeros de Clase</h2>
-                                <p className="text-blue-400 text-[10px] font-bold uppercase tracking-widest mt-1">Lista oficial de inscritos</p>
-                            </div>
-                            <button onClick={() => setIsUsersModalOpen(false)} className="p-2 hover:bg-white/10 rounded-full transition-colors">
-                                <ArrowLeft size={24} className="rotate-90" />
-                            </button>
+                <button onClick={() => setIsUsersModalOpen(true)} className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-xl transition-all">
+                    <div className="flex items-center gap-4 md:gap-6 text-left">
+                        <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-colors">
+                            <Users size={28} className="md:w-8 md:h-8" />
                         </div>
-                        <div className="p-8 max-h-[60vh] overflow-y-auto custom-scrollbar">
-                            <div className="grid gap-4">
-                                {integrantes.length > 0 ? integrantes.map(alumno => (
-                                    <div key={alumno.id_usuario} className="flex items-center gap-4 p-4 bg-slate-50 rounded-2xl border border-slate-100 group hover:bg-white hover:shadow-md transition-all">
-                                        <img 
-                                            src={alumno.foto_perfil ? `http://localhost:8080${alumno.foto_perfil}` : "http://localhost:8080/profiles/default.png"} 
-                                            className="w-12 h-12 rounded-full object-cover border-2 border-white shadow-sm"
-                                            alt="Perfil"
-                                            onError={(e) => { e.target.src = "http://localhost:8080/profiles/default.png"; }}
-                                        />
-                                        <div className="flex-1">
-                                            <p className="text-sm font-black text-slate-800 leading-none mb-1">{alumno.nombre} {alumno.apellido}</p>
-                                            <div className="flex items-center gap-2 text-[10px] text-slate-400 font-bold uppercase">
-                                                <Mail size={10} /> {alumno.correo}
-                                            </div>
-                                        </div>
-                                    </div>
-                                )) : (
-                                    <p className="text-center py-10 text-slate-400 font-bold uppercase text-xs">No hay alumnos matriculados aún</p>
-                                )}
-                            </div>
+                        <div>
+                            <p className="text-[9px] md:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Comunidad</p>
+                            <h3 className="text-lg md:text-xl font-black text-slate-800 uppercase leading-none">Ver Lista</h3>
+                            <p className="text-blue-600 text-[10px] font-bold mt-1 uppercase">{integrantes.length} Matriculados</p>
                         </div>
                     </div>
+                </button>
+
+                <div className="lg:col-span-2 bg-white rounded-[2rem] md:rounded-[3rem] border border-slate-100 p-6 md:p-10 min-h-[300px]">
+                    <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3 mb-6 md:mb-8">
+                        <BookOpen className="text-blue-600 w-5 h-5 md:w-6 md:h-6" /> Repositorio
+                    </h2>
+                    <div className="flex flex-col items-center justify-center py-12 md:py-16 text-center border-2 border-dashed border-slate-100 rounded-[1.5rem] md:rounded-[2rem] bg-slate-50/20">
+                        <GraduationCap size={40} className="text-slate-200 mb-4 md:w-12 md:h-12" />
+                        <p className="text-slate-400 font-bold uppercase text-[9px] md:text-[10px] tracking-[0.4em] max-w-[180px] md:max-w-[200px]">
+                            Sin recursos publicados
+                        </p>
+                    </div>
                 </div>
-            )}
+            </div>
+
+            <AulaIntegrantes isOpen={isUsersModalOpen} onClose={() => setIsUsersModalOpen(false)} integrantes={integrantes} />
+            <AulaDetalle isOpen={isInfoModalOpen} onClose={() => setIsInfoModalOpen(false)} curso={curso} />
         </div>
     );
 };

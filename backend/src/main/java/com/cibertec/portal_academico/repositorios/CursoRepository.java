@@ -17,4 +17,12 @@ public interface CursoRepository extends JpaRepository<Curso, Integer> {
     // Buscar cursos donde un alumno está matriculado
     @Query("SELECT m.curso FROM Matricula m WHERE m.alumno.id_usuario = :idAlumno")
     List<Curso> findCursosByAlumnoId(@Param("idAlumno") Integer idAlumno);
+
+    // VALIDACIÓN DE SEGURIDAD: Verifica si el alumno tiene una matrícula activa en el curso
+    @Query("SELECT COUNT(m) > 0 FROM Matricula m WHERE m.curso.id = :cursoId AND m.alumno.correo = :email")
+    boolean existsByCursoIdAndAlumnoEmail(@Param("cursoId") Integer cursoId, @Param("email") String email);
+    
+    // VALIDACIÓN PARA DOCENTE: Verifica si es el profesor del curso
+    @Query("SELECT COUNT(c) > 0 FROM Curso c WHERE c.id = :cursoId AND c.docente.correo = :email")
+    boolean existsByCursoIdAndDocenteEmail(@Param("cursoId") Integer cursoId, @Param("email") String email);
 }

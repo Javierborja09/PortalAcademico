@@ -8,9 +8,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-
 import javax.imageio.ImageIO;
 import java.awt.image.BufferedImage;
 import java.io.File;
@@ -177,11 +177,34 @@ public class CursoController {
     }
 
     // 6. OBTENER CURSO POR ID 
-    @GetMapping("/{id}")
-    @PreAuthorize("isAuthenticated()") 
-    public ResponseEntity<Curso> obtenerPorId(@PathVariable Integer id) {
-        return cursoRepository.findById(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+@GetMapping("/{id}")
+@PreAuthorize("isAuthenticated()") 
+public ResponseEntity<?> obtenerPorId(@PathVariable Integer id) {
+    // 1. Verificar existencia
+    Curso curso = cursoRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Curso no encontrado"));
+
+    // 2. Datos del Token
+    String emailActual = SecurityContextHolder.getContext().getAuthentication().getName();
+    String rol = SecurityContextHolder.getContext().getAuthentication()
+                                     .getAuthorities().iterator().next()
+                                     .getAuthority().toLowerCase();
+
+    // 3. Verificación de permisos (IDOR Protection)
+    boolean accesoPermitido = false;
+
+    if (rol.equals("admin")) {
+        accesoPermitido = true;
+    } else if (rol.equals("docente")) {
+        accesoPermitido = cursoRepository.existsByCursoIdAndDocenteEmail(id, emailActual);
+    } else if (rol.equals("alumno")) {
+        accesoPermitido = cursoRepository.existsByCursoIdAndAlumnoEmail(id, emailActual);
     }
+
+    if (!accesoPermitido) {
+        return ResponseEntity.status(403).body("Acceso denegado: No perteneces a este curso.");
+    }
+
+    return ResponseEntity.ok(curso);
+}
 }
