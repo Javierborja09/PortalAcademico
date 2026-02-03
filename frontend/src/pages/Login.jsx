@@ -19,6 +19,7 @@ const Login = () => {
       localStorage.setItem("token", data.token);
       localStorage.setItem("rol", data.rol);
       localStorage.setItem("nombre", data.nombre);
+        localStorage.setItem("apellido", data.apellido);
       localStorage.setItem("foto", data.foto);
       localStorage.setItem("userId", data.userId);
 

@@ -20,7 +20,7 @@ CREATE TABLE cursos (
     nombre_curso VARCHAR(100),
     codigo_curso VARCHAR(20) UNIQUE,
     id_docente INT,
-    imagen_portada VARCHAR(255) DEFAULT '',
+    imagen_portada VARCHAR(255) DEFAULT '/courses/default.webp',
     fecha_inicio DATE,
     fecha_fin DATE,
     FOREIGN KEY (id_docente) REFERENCES usuarios(id_usuario)
