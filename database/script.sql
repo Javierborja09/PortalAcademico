@@ -142,8 +142,6 @@ INSERT INTO usuarios (nombre, apellido, correo, password, rol) VALUES
 ('Cristian', 'Vega', 'cristian.vega@blackboard.com', '$2a$10$W/flyFH5fP4oVzrieEAp5OGXnuy.0TMPKOHkmgZfR7yxjY5QX5kii', 'alumno'),
 ('Leticia', 'Duarte', 'leticia.duarte@blackboard.com', '$2a$10$W/flyFH5fP4oVzrieEAp5OGXnuy.0TMPKOHkmgZfR7yxjY5QX5kii', 'alumno');
 
-
-select * from usuarios
 -- Matrículas automáticas para llenar los cursos (Ciclo 2026-I)
 -- Matricular a los nuevos alumnos (IDs del 7 al 46) en 2 cursos aleatorios cada uno
 INSERT INTO matriculas (id_alumno, id_curso, ciclo) 
@@ -223,10 +221,6 @@ CREATE TABLE entregas (
     FOREIGN KEY (id_alumno) REFERENCES usuarios(id_usuario) ON DELETE CASCADE
 );
 
-
-select * from evaluaciones
-
-
 -- Inserción de Anuncios Iniciales
 INSERT INTO anuncios (id_curso, id_autor, titulo, contenido) VALUES
 -- Anuncios para Curso 1
@@ -251,14 +245,7 @@ INSERT INTO anuncios (id_curso, id_autor, titulo, contenido) VALUES
 -- ==========================================
 -- PROCEDIMIENTOS ALMACENADOS
 -- ==========================================
--- Actualizar la contraseña de Luis Pérez a '123456' (en formato Bcrypt)
-UPDATE usuarios 
-SET password = '$2a$10$W/flyFH5fP4oVzrieEAp5OGXnuy.0TMPKOHkmgZfR7yxjY5QX5kii' 
-WHERE id_usuario = 2;
 DELIMITER //
-
-
-select * from usuarios
 
 -- Actualizar foto de perfil
 CREATE PROCEDURE sp_actualizar_foto_usuario(IN p_id_usuario INT, IN p_ruta_foto VARCHAR(255))

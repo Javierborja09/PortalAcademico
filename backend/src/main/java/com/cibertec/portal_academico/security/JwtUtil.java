@@ -22,13 +22,14 @@ public class JwtUtil {
     private long expiration;
 
     // 1. MÉTODO PARA CREAR EL TOKEN (Se usa en el Login)
-    public String generateToken(String email) {
+    public String generateToken(String email, String rol) {
         Key key = Keys.hmacShaKeyFor(secret.getBytes());
         return Jwts.builder()
-                .setSubject(email) // El "dueño" del token
-                .setIssuedAt(new Date(System.currentTimeMillis())) // Fecha de creación
-                .setExpiration(new Date(System.currentTimeMillis() + expiration)) // Fecha de vencimiento
-                .signWith(key, SignatureAlgorithm.HS256) // Firma digital
+                .setSubject(email)
+                .claim("rol", rol)
+                .setIssuedAt(new Date(System.currentTimeMillis()))
+                .setExpiration(new Date(System.currentTimeMillis() + expiration))
+                .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
