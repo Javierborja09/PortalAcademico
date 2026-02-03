@@ -25,6 +25,10 @@ const AulaVirtual = () => {
     const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
     const [errorAcceso, setErrorAcceso] = useState(false);
 
+    const handleBack = () => {
+        navigate('/cursos');
+    };
+
     const rol = localStorage.getItem('rol')?.toLowerCase();
     const usuarioNombre = localStorage.getItem('nombre') || 'Usuario';
 
@@ -104,11 +108,15 @@ const AulaVirtual = () => {
     return (
         <div className="animate-fadeIn pb-20 w-full max-w-7xl mx-auto px-4 md:px-8">
             <div className="flex items-center justify-between mb-6 md:mb-8 pt-4">
-                <button onClick={() => navigate(-1)} className="flex items-center gap-2 text-slate-400 hover:text-blue-600 font-bold text-xs md:text-sm group transition-all">
+                {/* CAMBIO: Usar handleBack en lugar de navigate(-1) */}
+                <button 
+                    onClick={handleBack} 
+                    className="flex items-center gap-2 text-slate-400 hover:text-blue-600 font-bold text-xs md:text-sm group transition-all"
+                >
                     <div className="p-2 rounded-xl bg-white shadow-sm group-hover:bg-blue-50">
                         <ArrowLeft size={16} />
                     </div>
-                    Regresar
+                    Volver a mis cursos
                 </button>
             </div>
 
