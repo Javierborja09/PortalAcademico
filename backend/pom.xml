@@ -11,7 +11,7 @@
 	<groupId>com.cibertec</groupId>
 	<artifactId>portal-academico</artifactId>
 	<version>0.0.1-SNAPSHOT</version>
-	<packaging>war</packaging>
+	<packaging>jar</packaging>
 	<name>portal-academico</name>
 	<description>Backend de portal academico</description>
 	<url/>
