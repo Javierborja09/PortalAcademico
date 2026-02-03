@@ -15,7 +15,6 @@ import java.awt.image.BufferedImage;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
-import java.util.HashMap;
 import java.util.Map;
 
 @RestController
@@ -29,8 +28,8 @@ public class UsuarioController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-    @Value("${upload.path}")
-    private String uploadDir;
+   @Value("${upload.path.profiles}")
+private String uploadDir;
 
     @GetMapping("/listar")
     @PreAuthorize("hasAuthority('admin')")
@@ -76,44 +75,48 @@ public class UsuarioController {
 
         usuarioRepository.save(u);
         return ResponseEntity.ok("Registrado con éxito.");
+    } 
+
+   @PutMapping("/editar/{id}")
+@PreAuthorize("hasAuthority('admin') or isAuthenticated()")
+public ResponseEntity<?> editarPerfil(
+        @PathVariable Integer id,
+        @RequestParam(value = "nombre", required = false) String nombre,     // Agregado
+        @RequestParam(value = "apellido", required = false) String apellido, // Agregado
+        @RequestParam(value = "rol", required = false) String rol,           // Agregado
+        @RequestParam(value = "correo", required = false) String correo,
+        @RequestParam(value = "password", required = false) String password,
+        @RequestParam(value = "foto", required = false) MultipartFile foto) {
+
+    Usuario usuario = usuarioRepository.findById(id)
+            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+    // Actualización de campos básicos
+    if (nombre != null) usuario.setNombre(nombre);
+    if (apellido != null) usuario.setApellido(apellido);
+    if (rol != null) usuario.setRol(Usuario.Rol.valueOf(rol.toLowerCase()));
+    if (correo != null) usuario.setCorreo(correo);
+    
+    // Aquí es donde se cambia la contraseña si se envía una nueva
+    if (password != null && !password.isEmpty()) {
+        usuario.setPassword(passwordEncoder.encode(password));
     }
 
-    @PutMapping("/editar/{id}")
-    @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> editarPerfil(
-            @PathVariable Integer id,
-            @RequestParam(value = "correo", required = false) String correo,
-            @RequestParam(value = "password", required = false) String password,
-            @RequestParam(value = "foto", required = false) MultipartFile foto) {
-
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        if (correo != null && !correo.isEmpty())
-            usuario.setCorreo(correo);
-        if (password != null && !password.isEmpty())
-            usuario.setPassword(passwordEncoder.encode(password));
-
-        if (foto != null && !foto.isEmpty()) {
-            eliminarArchivoFisico(usuario.getFoto_perfil());
-            usuario.setFoto_perfil(guardarImagenWebP(foto));
-        }
-
-        usuarioRepository.save(usuario);
-
-        Map<String, String> respuesta = new HashMap<>();
-        respuesta.getOrDefault("mensaje", "Perfil actualizado");
-        respuesta.put("foto", usuario.getFoto_perfil());
-
-        return ResponseEntity.ok(respuesta);
+    if (foto != null && !foto.isEmpty()) {
+        eliminarArchivoFisico(usuario.getFoto_perfil());
+        usuario.setFoto_perfil(guardarImagenWebP(foto));
     }
+
+    usuarioRepository.save(usuario);
+    return ResponseEntity.ok(Map.of("mensaje", "Usuario actualizado", "foto", usuario.getFoto_perfil()));
+}
 
     /**
      * Procesa la imagen, la convierte a WebP y la guarda en el disco.
      */
     private String guardarImagenWebP(MultipartFile foto) {
         try {
-            // 1. Generar nombre único con extensión .webp
+            // 1. Generar nombre único
             String nombreBase = System.currentTimeMillis() + "_perfil";
             String nombreArchivoWebp = nombreBase + ".webp";
 
@@ -121,7 +124,7 @@ public class UsuarioController {
             if (!Files.exists(rutaPath))
                 Files.createDirectories(rutaPath);
 
-            // 2. Leer la imagen original (sea JPG, PNG, etc.)
+            // 2. Leer la imagen original
             BufferedImage imagenOriginal = ImageIO.read(foto.getInputStream());
             if (imagenOriginal == null) {
                 throw new RuntimeException("El archivo subido no es una imagen válida.");
@@ -143,6 +146,22 @@ public class UsuarioController {
             throw new RuntimeException("Error al procesar imagen WebP: " + e.getMessage());
         }
     }
+
+    @DeleteMapping("/eliminar/{id}")
+@PreAuthorize("hasAuthority('admin')")
+public ResponseEntity<?> eliminarUsuario(@PathVariable Integer id) {
+    try {
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+        eliminarArchivoFisico(usuario.getFoto_perfil());
+        usuarioRepository.delete(usuario);
+
+        return ResponseEntity.ok(Map.of("mensaje", "Usuario eliminado correctamente"));
+    } catch (Exception e) {
+        return ResponseEntity.internalServerError()
+                .body(Map.of("error", "Error al eliminar: " + e.getMessage()));
+    }
+}
 
     private void eliminarArchivoFisico(String rutaLogica) {
         if (rutaLogica == null || rutaLogica.toLowerCase().contains("default")) {

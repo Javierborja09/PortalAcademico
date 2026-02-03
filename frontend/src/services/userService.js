@@ -18,3 +18,15 @@ export const getAllUsuarios = async () => {
     const response = await api.get('/usuarios/listar');
     return response.data;
 };
+
+export const deleteUsuario = async (userId) => {
+    const response = await api.delete(`/usuarios/eliminar/${userId}`);
+    return response.data;
+}
+export const saveUsuario = async (id, formData) => {
+    if (id) {
+        return await api.put(`/usuarios/editar/${id}`, formData);
+    } else {
+        return await api.post('/usuarios/registrar', formData);
+    }
+};

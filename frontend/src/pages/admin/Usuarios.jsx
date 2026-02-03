@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { getAllUsuarios } from '../../services/userService';
+import { getAllUsuarios, deleteUsuario } from '../../services/userService';
 import UsuarioItem from './UsuarioItem';
+import UsuarioAdmin from './UsuarioAdmin';
 import { Search, UserPlus, Loader2, Users } from 'lucide-react';
 
 const Usuarios = () => {
@@ -9,13 +10,17 @@ const Usuarios = () => {
     const [searchTerm, setSearchTerm] = useState(""); 
     const [loading, setLoading] = useState(true);
 
+    const [isModalOpen, setIsModalOpen] = useState(false);
+    const [selectedUsuario, setSelectedUsuario] = useState(null);
+
     useEffect(() => {
         fetchUsuarios();
     }, []);
 
     useEffect(() => {
+        if (!usuarios) return;
         const results = usuarios.filter(u =>
-            `${u.nombre} ${u.apellido} ${u.correo}`.toLowerCase().includes(searchTerm.toLowerCase())
+            `${u.nombre} ${u.apellido} ${u.correo} ${u.rol}`.toLowerCase().includes(searchTerm.toLowerCase())
         );
         setFilteredUsuarios(results);
     }, [searchTerm, usuarios]);
@@ -24,8 +29,7 @@ const Usuarios = () => {
         try {
             setLoading(true);
             const data = await getAllUsuarios();
-            setUsuarios(data);
-            setFilteredUsuarios(data);
+            setUsuarios(data || []);
         } catch (err) {
             console.error("Error cargando usuarios", err);
         } finally {
@@ -33,9 +37,29 @@ const Usuarios = () => {
         }
     };
 
+    const handleNuevoUsuario = () => {
+        setSelectedUsuario(null);
+        setIsModalOpen(true);
+    };
+
+    const handleEditar = (usuario) => {
+        setSelectedUsuario(usuario);
+        setIsModalOpen(true);
+    };
+
+    const handleEliminar = async (id) => {
+        if (window.confirm("¿Estás seguro?")) {
+            try {
+                await deleteUsuario(id);
+                setUsuarios(prev => prev.filter(u => u.id_usuario !== id));
+            } catch (err) {
+                alert("Error al eliminar");
+            }
+        }
+    };
+
     return (
         <div className="animate-fadeIn pb-10">
-            {/* Header Responsivo */}
             <header className="flex flex-col xl:flex-row xl:items-center justify-between gap-6 mb-10">
                 <div className="flex items-center gap-4">
                     <div className="p-3 bg-blue-600/10 rounded-2xl text-blue-600 hidden md:block">
@@ -43,63 +67,67 @@ const Usuarios = () => {
                     </div>
                     <div>
                         <h1 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight">Gestión de Usuarios</h1>
-                        <p className="text-slate-500 font-medium">Control total sobre accesos y roles académicos</p>
+                        <p className="text-slate-500 font-medium">Control administrativo de accesos</p>
                     </div>
                 </div>
 
                 <div className="flex flex-col sm:flex-row gap-4">
-                    <div className="relative group">
-                        <span className="absolute inset-y-0 left-4 flex items-center text-slate-400 group-focus-within:text-blue-500">
-                            <Search size={20} />
-                        </span>
+                    <div className="relative group flex-1">
+                        <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                         <input 
                             type="text"
-                            placeholder="Buscar usuario..."
-                            className="pl-12 pr-6 py-4 w-full sm:w-72 bg-white border border-slate-100 rounded-2xl shadow-sm focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 transition-all font-medium"
+                            placeholder="Buscar..."
+                            className="pl-12 pr-6 py-4 w-full sm:w-72 bg-white border border-slate-100 rounded-2xl shadow-sm focus:ring-4 focus:ring-blue-500/10 transition-all font-medium outline-none"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
                         />
                     </div>
-
-                    <button className="bg-slate-900 hover:bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold shadow-xl shadow-slate-200 hover:shadow-blue-500/20 transition-all flex items-center justify-center gap-3 active:scale-95">
+                    <button 
+                        onClick={handleNuevoUsuario}
+                        className="bg-slate-900 hover:bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold shadow-xl flex items-center justify-center gap-3 active:scale-95 transition-all"
+                    >
                         <UserPlus size={20} />
                         <span className="whitespace-nowrap">Nuevo Registro</span>
                     </button>
                 </div>
             </header>
 
-            {/* TABLA RESPONSIVA (Sin scroll horizontal) */}
             <div className="bg-white rounded-[2.5rem] shadow-sm border border-slate-100 overflow-hidden">
-                <table className="w-full text-left">
-                    {/* El header solo se ve en pantallas medianas o más grandes */}
+                <table className="w-full text-left border-collapse">
                     <thead className="hidden md:table-header-group">
                         <tr className="bg-slate-50/50 border-b border-slate-100">
                             <th className="p-6 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em]">Identidad</th>
-                            <th className="p-6 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em]">Correo Electrónico</th>
-                            <th className="p-6 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em]">Rol de Sistema</th>
+                            <th className="p-6 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em]">Correo</th>
+                            <th className="p-6 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em]">Rol</th>
                             <th className="p-6 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] text-right">Gestión</th>
                         </tr>
                     </thead>
+                    {/* IMPORTANTE: tbody con tr y td para evitar el Hydration Error */}
                     <tbody className="divide-y divide-slate-50 flex flex-col md:table-row-group">
                         {loading ? (
                             <tr>
-                                <td colSpan="4" className="py-24 text-center w-full">
-                                    <div className="flex flex-col items-center gap-3">
-                                        <Loader2 className="w-10 h-10 text-blue-600 animate-spin" />
-                                        <p className="text-slate-400 font-bold text-[10px] uppercase tracking-widest">Sincronizando...</p>
+                                <td colSpan="4" className="py-32 text-center">
+                                    <div className="flex flex-col items-center gap-4">
+                                        <Loader2 className="w-12 h-12 text-blue-600 animate-spin" />
+                                        <p className="text-slate-400 font-black text-[10px] uppercase tracking-[0.3em]">Sincronizando...</p>
                                     </div>
                                 </td>
                             </tr>
                         ) : filteredUsuarios.length > 0 ? (
                             filteredUsuarios.map(u => (
-                                <UsuarioItem key={u.id_usuario} usuario={u} />
+                                <UsuarioItem 
+                                    key={u.id_usuario} 
+                                    usuario={u} 
+                                    onEdit={handleEditar}
+                                    onDelete={handleEliminar}
+                                />
                             ))
                         ) : (
                             <tr>
-                                <td colSpan="4" className="py-24 text-center w-full">
-                                    <div className="opacity-20 flex flex-col items-center gap-4">
-                                        <Search size={48} />
-                                        <p className="text-slate-400 font-bold text-sm">No se encontraron usuarios.</p>
+                                <td colSpan="4" className="py-24 text-center">
+                                    <div className="opacity-30 flex flex-col items-center gap-4">
+                                        <Search size={56} className="text-slate-300" />
+                                        <p className="text-slate-900 font-black text-lg">Sin resultados</p>
                                     </div>
                                 </td>
                             </tr>
@@ -107,6 +135,13 @@ const Usuarios = () => {
                     </tbody>
                 </table>
             </div>
+
+            <UsuarioAdmin 
+                isOpen={isModalOpen}
+                onClose={() => setIsModalOpen(false)}
+                usuario={selectedUsuario}
+                onSave={fetchUsuarios} 
+            />
         </div>
     );
 };

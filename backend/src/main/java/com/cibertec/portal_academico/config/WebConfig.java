@@ -10,20 +10,28 @@ import java.nio.file.Paths;
 @Configuration
 public class WebConfig implements WebMvcConfigurer {
     
-    @Value("${upload.path}")
-    private String uploadDir;
+    @Value("${upload.path.profiles}")
+    private String profileDir;
+
+    @Value("${upload.path.courses}")
+    private String courseDir;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
-        Path pathObj = Paths.get(uploadDir).toAbsolutePath();
-        
+        // Registro para Perfiles
+        registrarRuta(registry, profileDir);
+        // Registro para Cursos
+        registrarRuta(registry, courseDir);
+    }
+
+    private void registrarRuta(ResourceHandlerRegistry registry, String dir) {
+        Path pathObj = Paths.get(dir).toAbsolutePath();
         String folderName = pathObj.getFileName().toString();
-        
         String resourceLocation = pathObj.toUri().toString();
 
         registry.addResourceHandler("/" + folderName + "/**")
                 .addResourceLocations(resourceLocation);
                 
-        System.out.println("Mapeo dinámico establecido: /" + folderName + "/** -> " + resourceLocation);
+        System.out.println("Mapeo: /" + folderName + "/** -> " + resourceLocation);
     }
 }

@@ -29,30 +29,51 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
-            .cors(cors -> cors.configurationSource(corsConfigurationSource()))
-            .csrf(csrf -> csrf.disable())
-            .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
-            .authorizeHttpRequests(auth -> auth
-                // IMPORTANTE: Permitimos acceso a las subidas (busca por el patrón de carpeta)
-                .requestMatchers("/*/**.png", "/*/**.jpg", "/*/**.jpeg", "/*/**.webp").permitAll()
-                
-                .requestMatchers("/api/auth/**").permitAll()
-                .requestMatchers("/api/usuarios/registrar").hasAuthority("admin")
-                .requestMatchers(HttpMethod.PUT, "/api/usuarios/editar/**").authenticated()
-                .anyRequest().authenticated()
-            )
-            .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
-        
+                .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+                .csrf(csrf -> csrf.disable())
+                .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+                .authorizeHttpRequests(auth -> auth
+                        // 1. Recursos Estáticos (Imágenes)
+                        .requestMatchers("/*/**.png", "/*/**.jpg", "/*/**.jpeg", "/*/**.webp").permitAll()
+
+                        // 2. Autenticación
+                        .requestMatchers("/api/auth/**").permitAll()
+
+                        // 3. Cursos (Listar y ver detalles)
+                        // Permitimos GET a cualquier usuario autenticado (alumno, docente, admin)
+                     .requestMatchers(HttpMethod.GET, "/api/cursos/**").hasAnyAuthority("admin", "docente", "alumno")
+                        // El registro y edición de cursos sí lo limitamos a admin
+                        .requestMatchers(HttpMethod.POST, "/api/cursos/**").hasAuthority("admin")
+                        .requestMatchers(HttpMethod.PUT, "/api/cursos/**").hasAuthority("admin")
+
+                        // 4. Matrículas (Aula Virtual)
+                        // Para ver integrantes y cursos del alumno
+                        .requestMatchers(HttpMethod.GET, "/api/matriculas/**").authenticated()
+                        // Para inscribir o retirar alumnos (solo admin)
+                        .requestMatchers("/api/matriculas/registrar", "/api/matriculas/eliminar/**")
+                        .hasAuthority("admin")
+
+                        // 5. Usuarios y Horarios
+                        .requestMatchers("/api/horarios/**").authenticated()
+                        .requestMatchers("/api/usuarios/registrar").hasAuthority("admin")
+                        .requestMatchers(HttpMethod.PUT, "/api/usuarios/editar/**").authenticated()
+
+                        // Cualquier otra petición requiere login
+                        .anyRequest().authenticated())
+                .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
+
         return http.build();
     }
 
     @Bean
-    public PasswordEncoder passwordEncoder() { return new BCryptPasswordEncoder(); }
+    public PasswordEncoder passwordEncoder() {
+        return new BCryptPasswordEncoder();
+    }
 
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-        config.setAllowedOrigins(Arrays.asList("*")); 
+        config.setAllowedOrigins(Arrays.asList("*"));
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type"));
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();

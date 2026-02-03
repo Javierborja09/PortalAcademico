@@ -1,30 +1,32 @@
 import React, { useEffect, useState } from 'react';
 import { getCursosByAlumno, getAllCursos } from '../../services/courseService';
-import CursoItem from './general/CursoItem';
-// Importamos Lucide Icons para una interfaz moderna
-import { BookOpen, Plus, Loader2, BookX, GraduationCap } from 'lucide-react';
+import CursoItem from './CursoItem';
+import CursoAdmin from './../../pages/admin/CursoAdmin';
+import { BookOpen, Plus, BookX, GraduationCap } from 'lucide-react';
 
 const Cursos = () => {
     const [cursos, setCursos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
     
     const userId = localStorage.getItem('userId');
     const rol = localStorage.getItem('rol')?.toLowerCase();
 
+    const cargarDatos = async () => {
+        try {
+            setLoading(true);
+            const data = (rol === 'admin') 
+                ? await getAllCursos() 
+                : await getCursosByAlumno(userId);
+            setCursos(data);
+        } catch (error) {
+            console.error("Error al cargar cursos", error);
+        } finally {
+            setLoading(false);
+        }
+    };
+
     useEffect(() => {
-        const cargarDatos = async () => {
-            try {
-                setLoading(true);
-                const data = (rol === 'admin') 
-                    ? await getAllCursos() 
-                    : await getCursosByAlumno(userId);
-                setCursos(data);
-            } catch (error) {
-                console.error("Error al cargar cursos", error);
-            } finally {
-                setLoading(false);
-            }
-        };
         cargarDatos();
     }, [rol, userId]);
 
@@ -48,7 +50,10 @@ const Cursos = () => {
                 </div>
 
                 {rol === 'admin' && (
-                    <button className="bg-slate-900 hover:bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold shadow-xl shadow-slate-200 hover:shadow-blue-500/20 transition-all flex items-center justify-center gap-2 active:scale-95 group">
+                    <button 
+                        onClick={() => setIsAdminModalOpen(true)}
+                        className="bg-slate-900 hover:bg-blue-600 text-white px-8 py-4 rounded-2xl font-bold shadow-xl shadow-slate-200 hover:shadow-blue-500/20 transition-all flex items-center justify-center gap-2 active:scale-95 group"
+                    >
                         <Plus size={20} className="group-hover:rotate-90 transition-transform" />
                         Crear Curso
                     </button>
@@ -71,7 +76,12 @@ const Cursos = () => {
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                     {cursos.length > 0 ? (
                         cursos.map((curso) => (
-                            <CursoItem key={curso.id} curso={curso} rol={rol} />
+                            <CursoItem 
+                                key={curso.id_curso} 
+                                curso={curso} 
+                                rol={rol} 
+                                onRefresh={cargarDatos} 
+                            />
                         ))
                     ) : (
                         <div className="col-span-full py-32 flex flex-col items-center justify-center bg-white rounded-[3rem] border-2 border-dashed border-slate-100 text-center px-6">
@@ -86,6 +96,13 @@ const Cursos = () => {
                     )}
                 </div>
             )}
+
+            {/* Modal Administrativo para Crear/Editar */}
+            <CursoAdmin 
+                isOpen={isAdminModalOpen} 
+                onClose={() => setIsAdminModalOpen(false)} 
+                onSave={cargarDatos} 
+            />
         </div>
     );
 };

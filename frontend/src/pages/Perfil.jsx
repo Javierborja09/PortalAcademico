@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { updateProfile } from '../services/userService';
+import { User, ShieldCheck, Camera, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 
 const Perfil = () => {
     const [user, setUser] = useState({
@@ -38,9 +39,7 @@ const Perfil = () => {
         setMensaje({ texto: '', tipo: '' });
 
         const formData = new FormData();
-        if (selectedFile) {
-            formData.append('foto', selectedFile);
-        }
+        if (selectedFile) formData.append('foto', selectedFile);
 
         try {
             const response = await updateProfile(userId, formData);
@@ -48,17 +47,14 @@ const Perfil = () => {
 
             if (nuevaFotoUrl) {
                 localStorage.setItem('foto', nuevaFotoUrl);
-                
                 setUser(prev => ({ ...prev, foto: nuevaFotoUrl }));
-
                 window.dispatchEvent(new Event('perfilActualizado'));
             }
 
             setSelectedFile(null); 
-            setMensaje({ texto: '¡Perfil actualizado al instante!', tipo: 'success' });
-
+            setMensaje({ texto: '¡Identidad actualizada con éxito!', tipo: 'success' });
         } catch (error) {
-            setMensaje({ texto: 'Error al actualizar el perfil.', tipo: 'error' });
+            setMensaje({ texto: 'No se pudo actualizar el perfil.', tipo: 'error' });
             console.error(error);
         } finally {
             setLoading(false);
@@ -66,60 +62,105 @@ const Perfil = () => {
     };
 
     return (
-        <div className="animate-fadeIn flex justify-center items-start pt-4">
-            <div className="max-w-2xl w-full bg-white shadow-sm border border-gray-100 rounded-[2.5rem] p-10">
-                <header className="mb-10 text-center md:text-left">
-                    <h1 className="text-4xl font-black text-slate-900 tracking-tight">Mi Perfil</h1>
-                    <p className="text-slate-500 font-medium">Gestiona tu identidad en la plataforma</p>
-                </header>
+        <div className="animate-fadeIn flex justify-center items-start pt-10 px-4 pb-20">
+            <div className="max-w-4xl w-full grid grid-cols-1 lg:grid-cols-12 gap-10">
                 
-                {mensaje.texto && (
-                    <div className={`mb-8 p-4 rounded-2xl text-sm font-bold text-center ${
-                        mensaje.tipo === 'success' ? 'bg-green-50 text-green-600' : 'bg-red-50 text-red-600'
-                    }`}>
-                        {mensaje.texto}
-                    </div>
-                )}
+                {/* LADO IZQUIERDO: Tarjeta de Identidad (Visual) */}
+                <div className="lg:col-span-5 space-y-6">
+                    <div className="bg-slate-900 rounded-[3rem] p-10 text-center relative overflow-hidden shadow-2xl">
+                        {/* Círculos decorativos de fondo */}
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-blue-500/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                        <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/10 rounded-full -ml-16 -mb-16 blur-3xl"></div>
 
-                <form onSubmit={handleSubmit} className="space-y-10">
-                    <div className="flex flex-col items-center bg-slate-50 p-8 rounded-[2rem] border border-dashed border-slate-200">
-                        <div className="relative group">
-                            <div className="absolute -inset-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-full blur opacity-25 group-hover:opacity-50 transition duration-1000 group-hover:duration-200"></div>
+                        <div className="relative inline-block mb-6">
+                            <div className="absolute -inset-2 bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-full opacity-30 blur-md"></div>
                             <img 
                                 src={preview || (user.foto && user.foto !== 'null' ? `${API_BASE}${user.foto}?t=${Date.now()}` : `${API_BASE}/uploads/profiles/default.png`)} 
                                 alt="Avatar" 
-                                className="relative w-44 h-44 rounded-full object-cover border-4 border-white shadow-2xl transition group-hover:scale-105"
+                                className="relative w-40 h-40 rounded-full object-cover border-4 border-slate-800 shadow-2xl"
                             />
-                            <label className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 cursor-pointer transition-all duration-300">
-                                <div className="bg-black/60 backdrop-blur-sm text-white text-xs font-bold px-4 py-2 rounded-full transform translate-y-4 group-hover:translate-y-0 transition-transform">
-                                    Cambiar Foto
-                                </div>
+                            <label className="absolute bottom-1 right-1 bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-2xl cursor-pointer shadow-xl transition-all active:scale-90 border-4 border-slate-900">
+                                <Camera size={20} strokeWidth={2.5} />
                                 <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />
                             </label>
                         </div>
-                    </div>
 
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                        <div className="space-y-2">
-                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Nombre Completo</label>
-                            <input type="text" value={user.nombre} disabled className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-500 font-bold cursor-not-allowed" />
-                        </div>
-                        <div className="space-y-2">
-                            <label className="text-xs font-black text-slate-400 uppercase tracking-widest ml-1">Rol Asignado</label>
-                            <input type="text" value={user.rol} disabled className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-slate-500 font-bold uppercase cursor-not-allowed" />
+                        <h2 className="text-2xl font-black text-white tracking-tight">{user.nombre}</h2>
+                        <div className="inline-flex items-center gap-2 mt-2 px-4 py-1.5 bg-white/5 rounded-full border border-white/10 text-blue-400 text-[10px] font-black uppercase tracking-[0.2em]">
+                            <ShieldCheck size={14} />
+                            {user.rol}
                         </div>
                     </div>
 
-                    <button 
-                        type="submit" 
-                        disabled={loading || !selectedFile}
-                        className={`w-full py-5 rounded-[1.5rem] font-black uppercase tracking-widest text-sm transition-all shadow-xl shadow-blue-100 ${
-                            loading || !selectedFile ? 'bg-slate-100 text-slate-300 cursor-not-allowed shadow-none' : 'bg-blue-600 hover:bg-blue-700 text-white active:scale-[0.98]'
-                        }`}
-                    >
-                        {loading ? 'Sincronizando...' : 'Actualizar mi perfil'}
-                    </button>
-                </form>
+                    {/* Mensajes de Estado */}
+                    {mensaje.texto && (
+                        <div className={`p-5 rounded-[2rem] border flex items-center gap-3 animate-slideUp ${
+                            mensaje.tipo === 'success' ? 'bg-emerald-50 border-emerald-100 text-emerald-700' : 'bg-rose-50 border-rose-100 text-rose-700'
+                        }`}>
+                            {mensaje.tipo === 'success' ? <CheckCircle2 size={24} /> : <AlertCircle size={24} />}
+                            <span className="text-sm font-black uppercase tracking-tight">{mensaje.texto}</span>
+                        </div>
+                    )}
+                </div>
+
+                {/* LADO DERECHO: Formulario de Configuración */}
+                <div className="lg:col-span-7 bg-white rounded-[3rem] p-12 border border-slate-100 shadow-sm">
+                    <header className="mb-10">
+                        <h1 className="text-3xl font-black text-slate-900 tracking-tight">Configuración</h1>
+                        <p className="text-slate-400 font-medium">Información personal registrada en el sistema</p>
+                    </header>
+                    
+                    <form onSubmit={handleSubmit} className="space-y-8">
+                        <div className="grid grid-cols-1 gap-6">
+                            <div className="group space-y-3">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
+                                    <User size={14} /> Nombre Completo
+                                </label>
+                                <input 
+                                    type="text" 
+                                    value={user.nombre} 
+                                    disabled 
+                                    className="w-full p-5 bg-slate-50 border-transparent rounded-[1.5rem] text-slate-600 font-bold cursor-not-allowed group-hover:bg-slate-100 transition-colors" 
+                                />
+                            </div>
+
+                            <div className="group space-y-3">
+                                <label className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] ml-2 flex items-center gap-2">
+                                    <ShieldCheck size={14} /> Rango Académico
+                                </label>
+                                <input 
+                                    type="text" 
+                                    value={user.rol} 
+                                    disabled 
+                                    className="w-full p-5 bg-slate-50 border-transparent rounded-[1.5rem] text-slate-600 font-bold uppercase cursor-not-allowed group-hover:bg-slate-100 transition-colors" 
+                                />
+                            </div>
+                        </div>
+
+                        <div className="pt-4">
+                            <button 
+                                type="submit" 
+                                disabled={loading || !selectedFile}
+                                className={`w-full py-6 rounded-[2rem] font-black uppercase tracking-[0.2em] text-xs transition-all flex items-center justify-center gap-3 ${
+                                    loading || !selectedFile 
+                                    ? 'bg-slate-100 text-slate-300 cursor-not-allowed' 
+                                    : 'bg-slate-900 hover:bg-blue-600 text-white shadow-2xl shadow-slate-200 active:scale-95'
+                                }`}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="animate-spin" /> Procesando
+                                    </>
+                                ) : (
+                                    'Guardar Cambios'
+                                )}
+                            </button>
+                            <p className="text-center text-[10px] text-slate-400 mt-6 font-bold uppercase tracking-widest">
+                                * Los datos personales son gestionados por el administrador
+                            </p>
+                        </div>
+                    </form>
+                </div>
             </div>
         </div>
     );

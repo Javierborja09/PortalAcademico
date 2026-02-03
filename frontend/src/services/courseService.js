@@ -9,3 +9,9 @@ export const getAllCursos = async () => {
     const response = await api.get('/cursos/listar');
     return response.data;
 };
+
+
+export const getCursoById = async (id) => {
+    const response = await api.get(`/cursos/${id}`);
+    return response.data;
+};
