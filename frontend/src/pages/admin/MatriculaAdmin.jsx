@@ -1,6 +1,7 @@
 import React from 'react';
 import { X, UserPlus, Trash2, Search, Loader2, UserCheck } from 'lucide-react';
-import { useMatriculaAdmin } from '../../hooks/useMatriculaAdmin';
+import { useMatriculaAdmin } from './../../hooks/useMatriculaAdmin';
+import Avatar from './../../components/common/Avatar';
 
 const MatriculaAdmin = ({ isOpen, onClose, curso }) => {
     const {
@@ -47,9 +48,11 @@ const MatriculaAdmin = ({ isOpen, onClose, curso }) => {
                                 {alumnosDisponibles.map(u => (
                                     <div key={u.id_usuario} className="flex items-center justify-between p-3 hover:bg-indigo-50/50 rounded-xl transition-colors">
                                         <div className="flex items-center gap-3 text-left">
-                                            <div className="w-8 h-8 rounded-full bg-indigo-100 flex items-center justify-center text-[10px] font-black text-indigo-600">
-                                                {u.nombre[0]}{u.apellido[0]}
-                                            </div>
+                                            {/* Usamos Avatar aquí también para la búsqueda */}
+                                            <Avatar 
+                                                src={u.foto_perfil} 
+                                                className="w-8 h-8 rounded-full border-none shadow-none" 
+                                            />
                                             <span className="text-sm font-bold text-slate-700">{u.nombre} {u.apellido}</span>
                                         </div>
                                         <button onClick={() => handleMatricular(u.id_usuario)} className="p-2 text-indigo-600 hover:bg-indigo-600 hover:text-white rounded-lg transition-all active:scale-90 shadow-sm">
@@ -73,11 +76,11 @@ const MatriculaAdmin = ({ isOpen, onClose, curso }) => {
                             alumnosMatriculados.map(m => (
                                 <div key={m.id_usuario} className="flex items-center justify-between p-4 bg-slate-50/50 border border-slate-100 rounded-2xl group hover:bg-white hover:shadow-lg hover:border-indigo-100 transition-all duration-300">
                                     <div className="flex items-center gap-4 text-left">
-                                        <img 
-                                            src={m.foto_perfil ? `http://localhost:8080${m.foto_perfil}` : "http://localhost:8080/uploads/profiles/default.png"} 
-                                            className="w-10 h-10 rounded-full object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform"
-                                            alt="Perfil"
-                                            onError={(e) => { e.target.src = "http://localhost:8080/uploads/profiles/default.png"; }}
+                                        {/* INTEGRACIÓN DEL COMPONENTE AVATAR */}
+                                        <Avatar 
+                                            src={m.foto_perfil} 
+                                            type="perfil"
+                                            className="w-10 h-10 rounded-full group-hover:scale-105"
                                         />
                                         <div>
                                             <p className="text-sm font-black text-slate-800 leading-tight">{m.nombre} {m.apellido}</p>
@@ -85,7 +88,6 @@ const MatriculaAdmin = ({ isOpen, onClose, curso }) => {
                                         </div>
                                     </div>
                                     <button 
-                                        // IMPORTANTE: Aquí enviamos el ID de la MATRÍCULA
                                         onClick={() => handleRetirar(m.id_matricula)} 
                                         className="p-2.5 text-slate-300 hover:text-red-500 hover:bg-red-50 rounded-xl transition-all"
                                         title="Retirar del curso"

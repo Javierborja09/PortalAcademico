@@ -1,10 +1,10 @@
-import React from "react";
+import React from 'react';
 import { Menu, X, LogOut } from "lucide-react";
-import { useSidebar } from "../hooks/useSidebar";
+import { useSidebar } from "./../hooks/useSidebar";
 import SidebarItem from "./SidebarItem";
+import Avatar from "./common/Avatar";
 
 const Sidebar = () => {
-    const API_BASE = "http://localhost:8080";
     const { 
         foto, nombre, rol, isOpen, toggleSidebar, 
         handleLogout, menuFiltrado, currentPath 
@@ -22,23 +22,30 @@ const Sidebar = () => {
 
             <aside className={`fixed left-0 top-0 h-screen bg-slate-950 text-white flex flex-col z-40 transition-all duration-300 border-r border-slate-800/50 ${isOpen ? "w-72 translate-x-0" : "w-72 -translate-x-full lg:translate-x-0"} lg:w-64`}>
                 
-                {/* PERFIL */}
+                {/* SECCIÓN DE PERFIL */}
                 <div className="p-8 text-center">
                     <div className="relative inline-block group">
+                        {/* Efecto de resplandor dinámico */}
                         <div className="absolute -inset-1.5 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-                        <img
-                            src={foto && foto !== "null" ? `${API_BASE}${foto}?t=${Date.now()}` : null}
-                            alt="Avatar"
-                            className="relative w-20 h-20 rounded-full border-2 border-slate-800 object-cover mx-auto bg-slate-900"
-                            onError={(e) => { 
-                                e.target.onerror = null;
-                                e.target.src = `${API_BASE}/uploads/profiles/default.png`; 
-                            }}
+                        
+                        {/* USAMOS EL COMPONENTE GLOBAL AVATAR */}
+                        <Avatar 
+                            src={foto} 
+                            type="perfil" 
+                            className="relative w-20 h-20 rounded-full border-2 border-slate-800 group-hover:scale-105"
+                            alt="Avatar de usuario"
                         />
-                        <div className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-4 border-slate-950 rounded-full"></div>
+                        
+                        {/* Indicador de estado (Online) */}
+                        <div className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-4 border-slate-950 rounded-full shadow-lg"></div>
                     </div>
-                    <h2 className="mt-4 font-bold text-slate-100 truncate px-2 leading-tight">{nombre}</h2>
-                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mt-1 italic">{rol}</p>
+                    
+                    <h2 className="mt-4 font-bold text-slate-100 truncate px-2 leading-tight">
+                        {nombre}
+                    </h2>
+                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mt-1 italic opacity-80">
+                        {rol}
+                    </p>
                 </div>
 
                 {/* NAVEGACIÓN DINÁMICA */}
@@ -63,9 +70,12 @@ const Sidebar = () => {
                     ))}
                 </nav>
 
-                {/* FOOTER */}
+                {/* FOOTER - CERRAR SESIÓN */}
                 <div className="p-4 bg-slate-900/30 border-t border-slate-800/50">
-                    <button onClick={handleLogout} className="w-full flex items-center space-x-3 p-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest group">
+                    <button 
+                        onClick={handleLogout} 
+                        className="w-full flex items-center space-x-3 p-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest group"
+                    >
                         <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
                         <span>Cerrar Sesión</span>
                     </button>

@@ -1,5 +1,6 @@
 import React from "react";
-import { Users, Mail } from "lucide-react";
+import { Users, Mail, X } from "lucide-react";
+import Avatar from "./common/Avatar"; // Importando con tu nuevo alias
 
 const AulaIntegrantes = ({ isOpen, onClose, integrantes }) => {
   if (!isOpen) return null;
@@ -13,52 +14,58 @@ const AulaIntegrantes = ({ isOpen, onClose, integrantes }) => {
         className="bg-white w-full max-w-xl rounded-[3rem] overflow-hidden shadow-2xl animate-slideUp"
         onClick={(e) => e.stopPropagation()}
       >
+        {/* Cabecera */}
         <div className="bg-slate-900 p-10 text-white flex justify-between items-center">
           <div>
             <h2 className="text-2xl font-black uppercase tracking-tight">
               Integrantes
             </h2>
             <p className="text-blue-400 text-[10px] font-bold uppercase tracking-widest mt-1">
-              Lista de clase
+              Lista de clase · {integrantes.length} alumnos
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-3 bg-white/10 hover:bg-white/20 rounded-2xl transition-colors"
+            className="p-3 bg-white/10 hover:bg-red-500/20 hover:text-red-400 rounded-2xl transition-all group"
           >
-            <Users size={20} />
+            <X size={20} className="group-hover:rotate-90 transition-transform" />
           </button>
         </div>
+
+        {/* Lista de Alumnos */}
         <div className="p-10 max-h-[60vh] overflow-y-auto custom-scrollbar space-y-4">
-          {integrantes.map((alumno) => (
-            <div
-              key={alumno.id_usuario}
-              className="flex items-center gap-5 p-5 bg-slate-50 rounded-[2rem] border border-slate-100 hover:bg-white hover:shadow-lg transition-all group"
-            >
-              <img
-                src={
-                  alumno.foto_perfil
-                    ? `http://localhost:8080${alumno.foto_perfil}`
-                    : null
-                }
-                className="w-14 h-14 rounded-full object-cover border-4 border-white shadow-sm group-hover:scale-110 transition-transform bg-slate-100"
-                alt="Perfil"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src =
-                    "http://localhost:8080/uploads/profiles/default.png";
-                }}
-              />
-              <div className="flex-1">
-                <p className="text-lg font-black text-slate-800 leading-none mb-1">
-                  {alumno.nombre} {alumno.apellido}
-                </p>
-                <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
-                  <Mail size={12} className="text-blue-500" /> {alumno.correo}
+          {integrantes.length > 0 ? (
+            integrantes.map((alumno) => (
+              <div
+                key={alumno.id_usuario}
+                className="flex items-center gap-5 p-5 bg-slate-50 rounded-[2rem] border border-slate-100 hover:bg-white hover:shadow-lg transition-all group"
+              >
+                {/* USAMOS EL COMPONENTE GLOBAL AVATAR */}
+                <Avatar
+                  src={alumno.foto_perfil}
+                  type="perfil"
+                  alt={`${alumno.nombre} ${alumno.apellido}`}
+                  className="w-14 h-14 rounded-full group-hover:scale-110"
+                />
+
+                <div className="flex-1">
+                  <p className="text-lg font-black text-slate-800 leading-none mb-1 group-hover:text-blue-600 transition-colors">
+                    {alumno.nombre} {alumno.apellido}
+                  </p>
+                  <div className="flex items-center gap-2 text-xs text-slate-400 font-bold">
+                    <Mail size={12} className="text-blue-500" /> {alumno.correo}
+                  </div>
                 </div>
               </div>
+            ))
+          ) : (
+            <div className="text-center py-10">
+              <Users size={40} className="mx-auto text-slate-200 mb-3" />
+              <p className="text-slate-400 font-bold uppercase text-[10px] tracking-widest">
+                No hay integrantes matriculados
+              </p>
             </div>
-          ))}
+          )}
         </div>
       </div>
     </div>

@@ -1,21 +1,18 @@
 import React from "react";
+import Avatar from "./common/Avatar"; 
 
 const AulaBanner = ({ curso }) => {
   return (
     <div className="relative w-full h-56 md:h-80 lg:h-96 rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden shadow-2xl mb-8 md:mb-12 border-4 md:border-8 border-white group">
-      <img
-        src={
-          curso?.imagenPortada
-            ? `http://localhost:8080${curso.imagenPortada}`
-            : null
-        }
-        className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-105 bg-slate-800"
-        alt="Banner"
-        onError={(e) => {
-          e.target.onerror = null;
-          e.target.src = "http://localhost:8080/courses/default.webp";
-        }}
+      
+      {/* USAMOS EL COMPONENTE GLOBAL AVATAR */}
+      <Avatar
+        src={curso?.imagenPortada}
+        type="curso"
+        alt="Banner del curso"
+        className="w-full h-full group-hover:scale-105 border-none shadow-none transition-transform duration-1000 bg-slate-800"
       />
+
       <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/50 to-transparent" />
 
       {/* Contenido centrado y ajustado para móvil */}

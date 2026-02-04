@@ -1,9 +1,8 @@
 import React from 'react';
 import { useCursos } from '../../hooks/useCursos';
-import CursoItem from './CursoItem';
 import CursoAdmin from './../../pages/admin/CursoAdmin';
 import { BookOpen, Plus, BookX, GraduationCap } from 'lucide-react';
-
+import CursoItem from './../../components/CursoItem';
 const Cursos = () => {
     const { 
         cursos, loading, rol, 

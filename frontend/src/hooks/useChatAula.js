@@ -52,6 +52,7 @@ export const useChatAula = (cursoId, usuarioNombre) => {
                 remitente: usuarioNombre,
                 contenido: input,
                 tipo: "CHAT",
+                rol: localStorage.getItem('rol')
             });
             setInput("");
         }
