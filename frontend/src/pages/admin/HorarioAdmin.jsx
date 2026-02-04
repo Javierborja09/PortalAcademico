@@ -43,8 +43,7 @@ const HorarioAdmin = ({ isOpen, onClose, horario = null, onSave }) => {
 const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
-
-    // Los datos del horario para el @RequestBody
+    
     const horarioBody = {
         diaSemana: formData.diaSemana,
         horaInicio: formData.horaInicio,

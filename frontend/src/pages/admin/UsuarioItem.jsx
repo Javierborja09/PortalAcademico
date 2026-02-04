@@ -2,13 +2,11 @@ import React from 'react';
 import { Pencil, Trash2, Mail, ShieldCheck, GraduationCap, UserCog, Hash } from 'lucide-react';
 
 const UsuarioItem = ({ usuario, onEdit, onDelete }) => {
-    // 1. VALIDACIÓN DE SEGURIDAD ABSOLUTA
-    // Si usuario es null/undefined, cortamos la ejecución aquí
     if (!usuario) return null;
 
     const API_BASE = "http://localhost:8080";
 
-    // 2. CONFIGURACIÓN DE ROLES (Lógica interna segura)
+    // 2. CONFIGURACIÓN DE ROLES 
     const getRoleConfig = (rol) => {
         const lowerRol = rol?.toLowerCase() || '';
         const configs = {

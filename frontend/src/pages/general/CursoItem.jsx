@@ -49,6 +49,7 @@ const CursoItem = ({ curso, rol, onRefresh }) => {
               alt={curso.nombreCurso}
               className="w-full h-full object-cover object-center transform group-hover:scale-105 transition-transform duration-700"
               onError={(e) => {
+                e.target.onerror = null;
                 e.target.src = "http://localhost:8080/courses/default.webp";
               }}
             />

@@ -42,14 +42,14 @@ const UsuarioAdmin = ({ isOpen, onClose, usuario = null, onSave }) => {
         e.preventDefault();
         setLoading(true);
 
-        // 1. Construimos el FormData campo por campo para que coincida con @RequestParam
+        // 1. Construimos el FormData
         const data = new FormData();
         data.append('nombre', formData.nombre);
         data.append('apellido', formData.apellido);
         data.append('correo', formData.correo);
         data.append('rol', formData.rol);
         
-        // Solo enviamos la contraseña si se ha escrito algo (para cambios o nuevos)
+        // Solo enviamos la contraseña si se ha escrito algo
         if (formData.contrasena) {
             data.append('password', formData.contrasena);
         }
@@ -59,7 +59,7 @@ const UsuarioAdmin = ({ isOpen, onClose, usuario = null, onSave }) => {
         }
 
         try {
-            // 2. Usamos tu servicio saveUsuario
+            // 2. Usamos saveUsuario para crear o actualizar
             await saveUsuario(usuario?.id_usuario, data);
             
             if (onSave) onSave(); 

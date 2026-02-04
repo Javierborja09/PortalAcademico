@@ -1,7 +1,6 @@
 import React from 'react';
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 
-// Importaciones
 import Login from './pages/Login';
 import Dashboard from './pages/Dashboard';
 import Perfil from './pages/Perfil';
@@ -12,7 +11,7 @@ import NotFound from './pages/NotFound';
 import ProtectedRoute from './components/ProtectedRoute';
 import PublicRoute from './components/PublicRoute';
 import MainLayout from './components/MainLayout';
-import RoleRoute from './components/RoleRoute'; // <--- IMPORTANTE
+import RoleRoute from './components/RoleRoute'; 
 import AulaVirtual from './pages/general/AulaVirtual';
 import AulaSesion from './pages/general/AulaSesion';
 
