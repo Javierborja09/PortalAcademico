@@ -36,6 +36,14 @@ class SesionService {
     });
   }
 
+  solicitarListaParticipantes(cursoId) {
+    if (this.client?.connected) {
+        this.client.publish({
+            destination: `/app/sesion.participantes/${cursoId}`,
+        });
+    }
+}
+
   conectar(cursoId, onMessageReceived, onConnectSuccess) {
     const socket = new SockJS("http://localhost:8080/ws-portal");
     this.client = new Client({
