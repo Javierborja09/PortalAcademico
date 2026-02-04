@@ -19,6 +19,8 @@ export const useCursoItem = (cursoId) => {
     const [horarios, setHorarios] = useState([]);
     const [isLoadingHorarios, setIsLoadingHorarios] = useState(false);
 
+    
+
     /**
      * Carga los horarios mediante el servicio y abre el modal de detalles.
      */

@@ -1,9 +1,9 @@
 import React from "react";
 import { usePerfil } from "../hooks/usePerfil";
 import { User, ShieldCheck, Camera, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
+import Avatar from "./../components/common/Avatar"; 
 
 const Perfil = () => {
-  const API_BASE = "http://localhost:8080";
   const { 
     user, preview, loading, mensaje, 
     selectedFile, handleFileChange, handleSubmit 
@@ -18,15 +18,14 @@ const Perfil = () => {
           <div className="bg-slate-900 rounded-[3rem] p-10 text-center relative overflow-hidden shadow-2xl">
             <div className="relative inline-block mb-6">
               <div className="absolute -inset-2 bg-gradient-to-tr from-blue-600 to-cyan-400 rounded-full opacity-30 blur-md"></div>
-              <img
-                src={preview || (user.foto && user.foto !== "null" ? `${API_BASE}${user.foto}?t=${Date.now()}` : null)}
-                alt="Avatar"
+              
+              {/* USAMOS EL COMPONENTE AVATAR AQUÍ */}
+              <Avatar 
+                src={preview || user.foto} 
+                type="perfil"
                 className="relative w-40 h-40 rounded-full object-cover border-4 border-slate-800 shadow-2xl bg-slate-800"
-                onError={(e) => {
-                  e.target.onerror = null;
-                  e.target.src = `${API_BASE}/uploads/profiles/default.png`;
-                }}
               />
+
               <label className="absolute bottom-1 right-1 bg-blue-600 hover:bg-blue-500 text-white p-3 rounded-2xl cursor-pointer shadow-xl transition-all border-4 border-slate-900">
                 <Camera size={20} strokeWidth={2.5} />
                 <input type="file" className="hidden" onChange={handleFileChange} accept="image/*" />

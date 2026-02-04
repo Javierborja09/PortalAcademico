@@ -9,7 +9,7 @@ import AulaSesionParticipantes from '../../components/AulaSesionParticipantes';
 
 const AulaSesion = () => {
     const {
-        id, isValidating, showEndModal, notificacion, activeTab,
+        id, curso, isValidating, showEndModal, notificacion, activeTab,
         setActiveTab, usuarioNombre, rol, toggleTab, handleTerminarSesion
     } = useAulaSesion();
 
@@ -51,7 +51,9 @@ const AulaSesion = () => {
                 <div className="flex items-center gap-3">
                     <div className="p-2 bg-blue-600 rounded-xl"><ShieldCheck size={18} /></div>
                     <div className="text-left">
-                        <h2 className="text-sm font-black uppercase tracking-widest leading-none text-white">Clase en Vivo</h2>
+                        <h2 className="text-sm font-black uppercase tracking-widest leading-none text-white truncate max-w-[200px] md:max-w-md">
+                            {curso?.nombreCurso || 'Cargando curso...'}
+                        </h2>
                         <p className="text-[10px] text-blue-400 font-bold uppercase opacity-70">ID: {id}</p>
                     </div>
                 </div>
