@@ -38,10 +38,10 @@ public class SecurityConfig {
 
                         // 2. Autenticación
                         .requestMatchers("/api/auth/**").permitAll()
-.requestMatchers("/ws-portal/**").permitAll()
+                        .requestMatchers("/ws-portal/**").permitAll()
                         // 3. Cursos (Listar y ver detalles)
                         // Permitimos GET a cualquier usuario autenticado (alumno, docente, admin)
-                     .requestMatchers(HttpMethod.GET, "/api/cursos/**").hasAnyAuthority("admin", "docente", "alumno")
+                        .requestMatchers(HttpMethod.GET, "/api/cursos/**").hasAnyAuthority("admin", "docente", "alumno")
                         // El registro y edición de cursos sí lo limitamos a admin
                         .requestMatchers(HttpMethod.POST, "/api/cursos/**").hasAuthority("admin")
                         .requestMatchers(HttpMethod.PUT, "/api/cursos/**").hasAuthority("admin")
@@ -58,6 +58,12 @@ public class SecurityConfig {
                         .requestMatchers("/api/usuarios/registrar").hasAuthority("admin")
                         .requestMatchers(HttpMethod.PUT, "/api/usuarios/editar/**").authenticated()
 
+                        // 6. Anuncios
+                        .requestMatchers(HttpMethod.GET, "/api/anuncios/curso/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/anuncios/crear").hasAuthority("docente")
+                        .requestMatchers(HttpMethod.PUT, "/api/anuncios/**").hasAuthority("docente")
+                        .requestMatchers(HttpMethod.DELETE, "/api/anuncios/**").hasAuthority("docente")
+
                         // Cualquier otra petición requiere login
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
@@ -70,24 +76,25 @@ public class SecurityConfig {
         return new BCryptPasswordEncoder();
     }
 
-   @Bean
-public CorsConfigurationSource corsConfigurationSource() {
-    CorsConfiguration config = new CorsConfiguration();
-    
-    // 1. ORIGEN ESPECÍFICO: No uses "*". Pon la URL de tu Vite.
-    config.setAllowedOrigins(Arrays.asList("http://localhost:5173")); 
-    
-    // 2. MÉTODOS PERMITIDOS
-    config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-    
-    // 3. CABECERAS PERMITIDAS: Añadimos X-Requested-With que la usa SockJS
-    config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
-    
-    // 4. PERMITIR CREDENCIALES: Esto es lo que permite que el túnel de SockJS se abra
-    config.setAllowCredentials(true); 
-    
-    UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
-    source.registerCorsConfiguration("/**", config);
-    return source;
-}
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration();
+
+        // 1. ORIGEN ESPECÍFICO: No uses "*". Pon la URL de tu Vite.
+        config.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
+
+        // 2. MÉTODOS PERMITIDOS
+        config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+
+        // 3. CABECERAS PERMITIDAS: Añadimos X-Requested-With que la usa SockJS
+        config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
+
+        // 4. PERMITIR CREDENCIALES: Esto es lo que permite que el túnel de SockJS se
+        // abra
+        config.setAllowCredentials(true);
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
+        source.registerCorsConfiguration("/**", config);
+        return source;
+    }
 }
