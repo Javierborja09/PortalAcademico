@@ -19,3 +19,16 @@ export const crearAnuncio = async (anuncioData) => {
     const response = await api.post('/anuncios/crear', params);
     return response.data;
 };
+
+export const eliminarAnuncio = async (id) => {
+    const response = await api.delete(`/anuncios/eliminar/${id}`);
+    return response.data;
+};
+
+export const editarAnuncio = async (id, data) => {
+    const params = new URLSearchParams();
+    params.append('titulo', data.titulo);
+    params.append('contenido', data.contenido);
+    const response = await api.put(`/anuncios/editar/${id}`, params);
+    return response.data;
+};

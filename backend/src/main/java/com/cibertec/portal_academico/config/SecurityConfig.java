@@ -61,6 +61,8 @@ public class SecurityConfig {
                         // 6. Anuncios
                         .requestMatchers(HttpMethod.GET, "/api/anuncios/curso/**").authenticated()
                         .requestMatchers(HttpMethod.POST, "/api/anuncios/crear").hasAuthority("docente")
+                        .requestMatchers(HttpMethod.PUT, "/api/anuncios/**").hasAuthority("docente")
+                        .requestMatchers(HttpMethod.DELETE, "/api/anuncios/**").hasAuthority("docente")
 
                         // Cualquier otra petición requiere login
                         .anyRequest().authenticated())

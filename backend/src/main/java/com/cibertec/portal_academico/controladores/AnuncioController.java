@@ -31,24 +31,28 @@ public class AnuncioController {
     @Autowired
     private UsuarioRepository usuarioRepository;
 
-    // 1️⃣ Listar anuncios visibles por curso (alumnos y docentes)
+    // 1 Listar anuncios visibles por curso (alumnos y docentes)
     @GetMapping("/curso/{idCurso}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<?> listarPorCurso(@PathVariable Integer idCurso) {
-        // La lógica de "vencimiento" o "visibilidad" está en la Query del Repo
-        List<Anuncio> anuncios = anuncioRepository.listarVisiblesPorCurso(idCurso);
+    public ResponseEntity<?> listarPorCurso(@PathVariable Integer idCurso, Authentication authentication) {
+        // 1. Extraemos los roles del usuario autenticado
+        boolean esDocente = authentication.getAuthorities().stream()
+                .anyMatch(a -> a.getAuthority().equalsIgnoreCase("docente"));
+
+        // 2. Pasamos el booleano al repositorio
+        List<Anuncio> anuncios = anuncioRepository.listarPorRol(idCurso, esDocente);
+
         return ResponseEntity.ok(anuncios);
     }
 
-    // 2️⃣ Crear anuncio (solo docente dueño del curso)
+    // 2 Crear anuncio (solo docente dueño del curso)
     @PostMapping("/crear")
     @PreAuthorize("hasAuthority('docente')")
     public ResponseEntity<?> crearAnuncio(
             @RequestParam Integer idCurso,
             @RequestParam String titulo,
             @RequestParam String contenido,
-            @RequestParam(required = false) 
-            @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaPublicacion,
+            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaPublicacion,
             Authentication authentication) {
 
         try {
@@ -74,7 +78,7 @@ public class AnuncioController {
                 return ResponseEntity.badRequest()
                         .body("Error: Solo se pueden programar anuncios hasta con 7 días de anticipación.");
             }
-            
+
             // Regla: No fechas pasadas
             if (fechaFinal.isBefore(hoy)) {
                 return ResponseEntity.badRequest()
@@ -92,9 +96,56 @@ public class AnuncioController {
             anuncioRepository.save(anuncio);
 
             return ResponseEntity.ok("Anuncio publicado con éxito para el " + fechaFinal);
-            
+
         } catch (Exception e) {
             return ResponseEntity.internalServerError().body("Error al procesar el anuncio: " + e.getMessage());
         }
     }
+
+    // 3 Editar anuncio (solo el autor)
+    @PutMapping("/editar/{id}")
+    @PreAuthorize("hasAuthority('docente')")
+    public ResponseEntity<?> editarAnuncio(
+            @PathVariable Integer id,
+            @RequestParam String titulo,
+            @RequestParam String contenido,
+            Authentication authentication) {
+        try {
+            Anuncio anuncio = anuncioRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Anuncio no encontrado"));
+
+            // Validar que el que edita sea el autor
+            if (!anuncio.getAutor().getCorreo().equals(authentication.getName())) {
+                return ResponseEntity.status(403).body("No tienes permiso para editar este anuncio.");
+            }
+
+            anuncio.setTitulo(titulo);
+            anuncio.setContenido(contenido);
+            anuncioRepository.save(anuncio);
+
+            return ResponseEntity.ok("Anuncio actualizado correctamente.");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
+    }
+
+    // 4 Eliminar anuncio (solo el autor)
+    @DeleteMapping("/eliminar/{id}")
+    @PreAuthorize("hasAuthority('docente')")
+    public ResponseEntity<?> eliminarAnuncio(@PathVariable Integer id, Authentication authentication) {
+        try {
+            Anuncio anuncio = anuncioRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Anuncio no encontrado"));
+
+            if (!anuncio.getAutor().getCorreo().equals(authentication.getName())) {
+                return ResponseEntity.status(403).body("No tienes permiso para eliminar este anuncio.");
+            }
+
+            anuncioRepository.delete(anuncio);
+            return ResponseEntity.ok("Anuncio eliminado.");
+        } catch (Exception e) {
+            return ResponseEntity.internalServerError().body("Error: " + e.getMessage());
+        }
+    }
+
 }

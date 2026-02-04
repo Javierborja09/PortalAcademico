@@ -1,25 +1,32 @@
 import React, { useState } from 'react';
 import { X, Send, Calendar } from 'lucide-react';
-import { crearAnuncio } from '../../services/anuncioService';
+import { crearAnuncio, editarAnuncio } from '../../services/anuncioService';
 
-const AnuncioForm = ({ idCurso, onClose, onSuccess }) => {
+const AnuncioForm = ({ idCurso, onClose, onSuccess, anuncioAEditar }) => {
+    const isEditing = !!anuncioAEditar;
+    
     const [form, setForm] = useState({
-        titulo: '',
-        contenido: '',
-        fechaPublicacion: new Date().toISOString().split('T')[0] // Por defecto hoy (YYYY-MM-DD)
+        titulo: anuncioAEditar?.titulo || '',
+        contenido: anuncioAEditar?.contenido || '',
+        fechaPublicacion: anuncioAEditar?.fechaPublicacion || new Date().toLocaleDateString('en-CA')
     });
+   
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
         try {
-            // Enviamos los datos al backend usando el servicio adaptado
-            await crearAnuncio({ ...form, idCurso });
-            onSuccess(); // Esta función recargará la lista en CursoDetalle
+            if (isEditing) {
+                // Llamamos al servicio de EDITAR
+                await editarAnuncio(anuncioAEditar.id_anuncio, form);
+            } else {
+                // Llamamos al servicio de CREAR
+                await crearAnuncio({ ...form, idCurso });
+            }
+            onSuccess();
         } catch (error) {
-            // Mostramos el mensaje de error que configuramos en el Controller
-            alert(error.response?.data || "Error al crear el anuncio");
+            alert(error.response?.data || "Error en la operación");
         } finally {
             setLoading(false);
         }
@@ -32,7 +39,7 @@ const AnuncioForm = ({ idCurso, onClose, onSuccess }) => {
 
             <div className="relative bg-white w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden animate-slideUp">
                 <div className="bg-blue-600 p-6 text-white flex justify-between items-center">
-                    <h3 className="font-black uppercase text-xs tracking-[0.2em]">Nuevo Anuncio</h3>
+                    <h3 className="font-black uppercase text-xs tracking-[0.2em]">{isEditing ? 'Editar Anuncio' : 'Nuevo Anuncio'}</h3>
                     <button onClick={onClose} className="hover:bg-white/20 p-1 rounded-full transition-colors">
                         <X size={18} />
                     </button>
@@ -63,17 +70,19 @@ const AnuncioForm = ({ idCurso, onClose, onSuccess }) => {
                         />
                     </div>
 
-                    <div>
-                        <label className="text-[10px] font-black uppercase text-slate-400 ml-2 mb-2 block flex items-center gap-2">
-                            <Calendar size={12} /> Programar publicación (Opcional)
-                        </label>
-                        <input
-                            type="date"
-                            className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium focus:border-blue-500 outline-none transition-all"
-                            value={form.fechaPublicacion}
-                            onChange={(e) => setForm({ ...form, fechaPublicacion: e.target.value })}
-                        />
-                    </div>
+                   {!isEditing && ( // Opcional: Ocultar fecha si es edición o dejarlo si permites cambiarla
+                        <div>
+                            <label className="text-[10px] font-black uppercase text-slate-400 ml-2 mb-2 block flex items-center gap-2">
+                                <Calendar size={12} /> Programar publicación
+                            </label>
+                            <input
+                                type="date"
+                                className="w-full p-4 bg-slate-50 border border-slate-100 rounded-2xl text-sm font-medium focus:border-blue-500 outline-none transition-all"
+                                value={form.fechaPublicacion}
+                                onChange={(e) => setForm({ ...form, fechaPublicacion: e.target.value })}
+                            />
+                        </div>
+                    )}
 
                     <div className="flex gap-3 pt-4">
                         <button
@@ -89,7 +98,7 @@ const AnuncioForm = ({ idCurso, onClose, onSuccess }) => {
                             className="flex-1 py-4 bg-slate-900 text-white rounded-2xl font-black uppercase text-[10px] tracking-widest hover:bg-blue-600 shadow-lg shadow-slate-200 transition-all flex items-center justify-center gap-2"
                         >
                             <Send size={14} />
-                            {loading ? 'Publicando...' : 'Publicar'}
+                            {loading ? 'Procesando...' : (isEditing ? 'Guardar Cambios' : 'Publicar')}
                         </button>
                     </div>
                 </form>
