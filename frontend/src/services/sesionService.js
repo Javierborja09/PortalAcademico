@@ -1,16 +1,25 @@
 import { Client } from "@stomp/stompjs";
 import SockJS from "sockjs-client";
 
+/**
+ * Servicio encargado de gestionar la comunicación en tiempo real mediante WebSockets (STOMP).
+ * Maneja la persistencia de mensajes en memoria, la lista de participantes y el estado de la sesión.
+ */
 class SesionService {
     constructor() {
+        /** @type {Client|null} Instancia del cliente STOMP */
         this.client = null;
-        // Almacén en memoria para evitar pesadez en el DOM
-        // Estructura: { cursoId: [Mensaje1, Mensaje2, ...] }
+        /** @type {Map<number, Array>} Almacén de mensajes por ID de curso para evitar saturar el DOM */
         this.mensajesPorCurso = new Map();
     }
 
     // --- GESTIÓN DE MEMORIA ---
 
+    /**
+     * Guarda un mensaje en el historial temporal del navegador.
+     * @param {number|string} cursoId - ID del curso actual.
+     * @param {Object} mensaje - Objeto del mensaje recibido.
+     */
     agregarMensajeAMemoria(cursoId, mensaje) {
         const id = parseInt(cursoId);
         if (!this.mensajesPorCurso.has(id)) {
@@ -23,10 +32,19 @@ class SesionService {
         if (historial.length > 150) historial.shift();
     }
 
+    /**
+     * Recupera los mensajes guardados para un curso específico.
+     * @param {number|string} cursoId 
+     * @returns {Array} Listado de mensajes.
+     */
     obtenerHistorial(cursoId) {
         return this.mensajesPorCurso.get(parseInt(cursoId)) || [];
     }
 
+    /**
+     * Elimina los mensajes en memoria de un curso.
+     * @param {number|string} cursoId 
+     */
     limpiarDatosCurso(cursoId) {
         this.mensajesPorCurso.delete(parseInt(cursoId));
         console.log(`[Memoria] Datos del curso ${cursoId} eliminados.`);
@@ -34,6 +52,12 @@ class SesionService {
 
     // --- CONEXIÓN Y EVENTOS ---
 
+    /**
+     * Inicializa la conexión WebSocket y se suscribe al tópico del curso.
+     * @param {number|string} cursoId - ID del curso para la suscripción.
+     * @param {Function} onMessageReceived - Callback ejecutado al recibir cualquier mensaje.
+     * @param {Function} onConnectSuccess - Callback ejecutado al establecer la conexión.
+     */
     conectar(cursoId, onMessageReceived, onConnectSuccess) {
         const socket = new SockJS("http://localhost:8080/ws-portal");
         this.client = new Client({
@@ -43,7 +67,6 @@ class SesionService {
                 this.client.subscribe(`/topic/curso/${cursoId}`, (payload) => {
                     const msg = JSON.parse(payload.body);
 
-                    // Si es un mensaje de chat, lo guardamos en el array de memoria
                     if (msg.tipo === 'CHAT') {
                         this.agregarMensajeAMemoria(cursoId, msg);
                     }
@@ -56,12 +79,18 @@ class SesionService {
         this.client.activate();
     }
 
+    /** Cierra la conexión activa del cliente STOMP */
     desconectar() {
         if (this.client) {
             this.client.deactivate();
         }
     }
 
+    /**
+     * Publica un evento genérico al tópico del curso.
+     * @param {number|string} cursoId 
+     * @param {Object} datos - Cuerpo del mensaje (remitente, tipo, contenido, etc).
+     */
     enviarEvento(cursoId, datos) {
         if (this.client?.connected) {
             this.client.publish({
@@ -73,6 +102,7 @@ class SesionService {
 
     // --- MÉTODOS DE SESIÓN ---
 
+    /** Notifica el inicio de una clase (Exclusivo Docente) */
     iniciarClase(cursoId, usuario) {
         if (this.client?.connected) {
             this.client.publish({
@@ -82,19 +112,20 @@ class SesionService {
         }
     }
 
+    /** Finaliza la clase, notifica a los alumnos y limpia la memoria local */
     finalizarClase(cursoId, usuario) {
         if (this.client?.connected) {
             this.client.publish({
                 destination: `/app/sesion.finalizar/${cursoId}`,
                 body: JSON.stringify({ remitente: usuario, tipo: "END_SESSION" }),
             });
-            // Al finalizar, liberamos la memoria del navegador
             this.limpiarDatosCurso(cursoId);
         }
     }
 
     // --- PARTICIPANTES Y ESTADO ---
 
+    /** Solicita al servidor la lista actual de usuarios conectados */
     solicitarListaParticipantes(cursoId) {
         if (this.client?.connected) {
             this.client.publish({
@@ -103,6 +134,7 @@ class SesionService {
         }
     }
 
+    /** Envía una señal para verificar si la sesión sigue activa en el servidor */
     verificarEstado(cursoId) {
         if (this.client?.connected) {
             this.client.publish({
@@ -111,7 +143,11 @@ class SesionService {
         }
     }
 
-    // Método asíncrono útil para guardias de navegación
+    /**
+     * Versión asíncrona para verificar el estado de la sesión (ideal para Guards de React Router).
+     * @param {number|string} cursoId 
+     * @returns {Promise<boolean>} True si la sesión está activa.
+     */
     verificarEstadoAsync(cursoId) {
         return new Promise((resolve) => {
             if (!this.client?.connected) {
@@ -132,7 +168,6 @@ class SesionService {
 
             this.client.publish({ destination: `/app/sesion.verificar/${cursoId}` });
 
-            // Timeout de seguridad
             setTimeout(() => {
                 sub.unsubscribe();
                 resolve(false);
