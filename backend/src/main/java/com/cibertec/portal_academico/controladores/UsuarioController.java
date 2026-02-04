@@ -16,6 +16,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.*;
 import java.util.Map;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/usuarios")
@@ -28,8 +29,8 @@ public class UsuarioController {
     @Autowired
     private PasswordEncoder passwordEncoder;
 
-   @Value("${upload.path.profiles}")
-private String uploadDir;
+    @Value("${upload.path.profiles}")
+    private String uploadDir;
 
     @GetMapping("/listar")
     @PreAuthorize("hasAuthority('admin')")
@@ -75,41 +76,52 @@ private String uploadDir;
 
         usuarioRepository.save(u);
         return ResponseEntity.ok("Registrado con éxito.");
-    } 
-
-   @PutMapping("/editar/{id}")
-@PreAuthorize("hasAuthority('admin') or isAuthenticated()")
-public ResponseEntity<?> editarPerfil(
-        @PathVariable Integer id,
-        @RequestParam(value = "nombre", required = false) String nombre,     // Agregado
-        @RequestParam(value = "apellido", required = false) String apellido, // Agregado
-        @RequestParam(value = "rol", required = false) String rol,           // Agregado
-        @RequestParam(value = "correo", required = false) String correo,
-        @RequestParam(value = "password", required = false) String password,
-        @RequestParam(value = "foto", required = false) MultipartFile foto) {
-
-    Usuario usuario = usuarioRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-    // Actualización de campos básicos
-    if (nombre != null) usuario.setNombre(nombre);
-    if (apellido != null) usuario.setApellido(apellido);
-    if (rol != null) usuario.setRol(Usuario.Rol.valueOf(rol.toLowerCase()));
-    if (correo != null) usuario.setCorreo(correo);
-    
-    // Aquí es donde se cambia la contraseña si se envía una nueva
-    if (password != null && !password.isEmpty()) {
-        usuario.setPassword(passwordEncoder.encode(password));
     }
 
-    if (foto != null && !foto.isEmpty()) {
-        eliminarArchivoFisico(usuario.getFoto_perfil());
-        usuario.setFoto_perfil(guardarImagenWebP(foto));
-    }
+    @PutMapping("/editar/{id}")
+    @PreAuthorize("hasAuthority('admin') or isAuthenticated()")
+    public ResponseEntity<?> editarPerfil(
+            @PathVariable Integer id,
+            @RequestParam(value = "nombre", required = false) String nombre,
+            @RequestParam(value = "apellido", required = false) String apellido,
+            @RequestParam(value = "rol", required = false) String rol,
+            @RequestParam(value = "correo", required = false) String correo,
+            @RequestParam(value = "password", required = false) String password,
+            @RequestParam(value = "foto", required = false) MultipartFile foto) {
 
-    usuarioRepository.save(usuario);
-    return ResponseEntity.ok(Map.of("mensaje", "Usuario actualizado", "foto", usuario.getFoto_perfil()));
-}
+        Usuario usuario = usuarioRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
+
+        // VALIDACIÓN DE CORREO ÚNICO
+        if (correo != null && !correo.equalsIgnoreCase(usuario.getCorreo())) {
+            Optional<Usuario> usuarioExistente = usuarioRepository.findByCorreo(correo);
+            if (usuarioExistente.isPresent()) {
+                return ResponseEntity.badRequest()
+                        .body("Error: El correo " + correo + " ya está registrado por otro usuario.");
+            }
+            usuario.setCorreo(correo);
+        }
+
+        // Actualización de los demás campos...
+        if (nombre != null)
+            usuario.setNombre(nombre);
+        if (apellido != null)
+            usuario.setApellido(apellido);
+        if (rol != null)
+            usuario.setRol(Usuario.Rol.valueOf(rol.toLowerCase()));
+
+        if (password != null && !password.isEmpty()) {
+            usuario.setPassword(passwordEncoder.encode(password));
+        }
+
+        if (foto != null && !foto.isEmpty()) {
+            eliminarArchivoFisico(usuario.getFoto_perfil());
+            usuario.setFoto_perfil(guardarImagenWebP(foto));
+        }
+
+        usuarioRepository.save(usuario);
+        return ResponseEntity.ok(Map.of("mensaje", "Usuario actualizado", "foto", usuario.getFoto_perfil()));
+    }
 
     /**
      * Procesa la imagen, la convierte a WebP y la guarda en el disco.
@@ -146,22 +158,6 @@ public ResponseEntity<?> editarPerfil(
             throw new RuntimeException("Error al procesar imagen WebP: " + e.getMessage());
         }
     }
-
-    @DeleteMapping("/eliminar/{id}")
-@PreAuthorize("hasAuthority('admin')")
-public ResponseEntity<?> eliminarUsuario(@PathVariable Integer id) {
-    try {
-        Usuario usuario = usuarioRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-        eliminarArchivoFisico(usuario.getFoto_perfil());
-        usuarioRepository.delete(usuario);
-
-        return ResponseEntity.ok(Map.of("mensaje", "Usuario eliminado correctamente"));
-    } catch (Exception e) {
-        return ResponseEntity.internalServerError()
-                .body(Map.of("error", "Error al eliminar: " + e.getMessage()));
-    }
-}
 
     private void eliminarArchivoFisico(String rutaLogica) {
         if (rutaLogica == null || rutaLogica.toLowerCase().contains("default")) {

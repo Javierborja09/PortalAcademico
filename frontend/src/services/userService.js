@@ -36,25 +36,22 @@ export const getAllUsuarios = async () => {
 };
 
 /**
- * Elimina un usuario del sistema de forma permanente.
- * @param {number|string} userId - ID del usuario a eliminar.
- * @returns {Promise<Object>} Mensaje de confirmación.
- */
-export const deleteUsuario = async (userId) => {
-    const response = await api.delete(`/usuarios/eliminar/${userId}`);
-    return response.data;
-}
-
-/**
  * Registra un nuevo usuario o actualiza uno existente (Administración).
  * @param {number|string|null} id - ID del usuario (si es null, registra; si existe, edita).
  * @param {FormData|Object} formData - Datos del usuario.
  * @returns {Promise<Object>} Resultado de la operación.
  */
 export const saveUsuario = async (id, formData) => {
-    if (id) {
-        return await api.put(`/usuarios/editar/${id}`, formData);
-    } else {
-        return await api.post('/usuarios/registrar', formData);
+    try {
+        if (id) {
+            const response = await api.put(`/usuarios/editar/${id}`, formData);
+            return response.data;
+        } else {
+            const response = await api.post('/usuarios/registrar', formData);
+            return response.data;
+        }
+    } catch (error) {
+        const message = error.response?.data || "Error en la operación";
+        throw new Error(message);
     }
 };

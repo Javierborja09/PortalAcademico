@@ -1,12 +1,12 @@
 import React from 'react';
-import { Pencil, Trash2, Mail, ShieldCheck, GraduationCap, UserCog, Hash } from 'lucide-react';
+import { Pencil, Mail, ShieldCheck, GraduationCap, UserCog, Hash } from 'lucide-react';
 
-const UsuarioItem = ({ usuario, onEdit, onDelete }) => {
+const UsuarioItem = ({ usuario, onEdit }) => {
     if (!usuario) return null;
 
     const API_BASE = "http://localhost:8080";
 
-    // 2. CONFIGURACIÓN DE ROLES 
+    // CONFIGURACIÓN DE ROLES 
     const getRoleConfig = (rol) => {
         const lowerRol = rol?.toLowerCase() || '';
         const configs = {
@@ -40,7 +40,10 @@ const UsuarioItem = ({ usuario, onEdit, onDelete }) => {
                                 : `${API_BASE}/uploads/profiles/default.png`} 
                             alt="Avatar" 
                             className="w-12 h-12 md:w-11 md:h-11 rounded-full object-cover border-2 border-white shadow-sm group-hover:scale-105 transition-transform"
-                            onError={(e) => { e.target.src = `${API_BASE}/uploads/profiles/default.png`; }}
+                            onError={(e) => { 
+                                e.target.onerror = null;
+                                e.target.src = `${API_BASE}/uploads/profiles/default.png`; 
+                            }}
                         />
                         <div className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full"></div>
                     </div>
@@ -74,22 +77,14 @@ const UsuarioItem = ({ usuario, onEdit, onDelete }) => {
 
             {/* ACCIONES */}
             <td className="md:p-5 pt-4 md:text-right">
-                <div className="flex md:justify-end gap-2 md:opacity-0 group-hover:opacity-100 transition-all">
+                <div className="flex md:justify-end md:opacity-0 group-hover:opacity-100 transition-all">
                     <button 
                         onClick={() => onEdit?.(usuario)}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 md:p-2.5 p-3 bg-white hover:bg-blue-50 text-slate-400 hover:text-blue-600 rounded-xl border border-slate-100 md:border-transparent hover:border-blue-100 transition-all shadow-sm md:shadow-none active:scale-95"
-                        title="Editar"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 md:p-2.5 p-3 bg-white hover:bg-blue-600 text-slate-400 hover:text-white rounded-xl border border-slate-100 md:border-transparent hover:border-blue-600 transition-all shadow-sm md:shadow-none active:scale-95 group/btn"
+                        title="Editar Registro"
                     >
-                        <Pencil size={16} strokeWidth={2.5} />
-                        <span className="md:hidden text-[10px] font-black uppercase ml-2">Editar</span>
-                    </button>
-                    <button 
-                        onClick={() => onDelete?.(usuario.id_usuario)}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 md:p-2.5 p-3 bg-white hover:bg-red-50 text-slate-400 hover:text-red-500 rounded-xl border border-slate-100 md:border-transparent hover:border-red-100 transition-all shadow-sm md:shadow-none active:scale-95"
-                        title="Eliminar"
-                    >
-                        <Trash2 size={16} strokeWidth={2.5} />
-                        <span className="md:hidden text-[10px] font-black uppercase ml-2">Eliminar</span>
+                        <Pencil size={16} strokeWidth={2.5} className="group-hover/btn:rotate-12 transition-transform" />
+                        <span className="md:hidden text-[10px] font-black uppercase ml-2">Editar Usuario</span>
                     </button>
                 </div>
             </td>

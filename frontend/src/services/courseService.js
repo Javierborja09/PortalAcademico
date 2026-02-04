@@ -2,8 +2,6 @@ import api from '../api/axiosConfig';
 
 /**
  * Obtiene la lista de cursos en los que un alumno específico está matriculado.
- * @param {number|string} userId - ID del alumno.
- * @returns {Promise<Array>} Listado de cursos del alumno.
  */
 export const getCursosByAlumno = async (userId) => {
     const response = await api.get(`/cursos/alumno/${userId}`);
@@ -11,8 +9,7 @@ export const getCursosByAlumno = async (userId) => {
 };
 
 /**
- * Recupera todos los cursos registrados en el sistema (Uso administrativo).
- * @returns {Promise<Array>} Lista completa de cursos.
+ * Recupera todos los cursos registrados en el sistema.
  */
 export const getAllCursos = async () => {
     const response = await api.get('/cursos/listar');
@@ -21,8 +18,6 @@ export const getAllCursos = async () => {
 
 /**
  * Obtiene la información detallada de un curso específico por su ID.
- * @param {number|string} id - Identificador único del curso.
- * @returns {Promise<Object>} Datos del curso (nombre, descripción, docente, etc).
  */
 export const getCursoById = async (id) => {
     const response = await api.get(`/cursos/${id}`);
@@ -31,10 +26,40 @@ export const getCursoById = async (id) => {
 
 /**
  * Obtiene los cursos asignados a un docente específico.
- * @param {number|string} userId - ID del docente.
- * @returns {Promise<Array>} Listado de cursos dictados por el docente.
  */
 export const getCursosByDocente = async (userId) => {
     const response = await api.get(`/cursos/docente/${userId}`);
+    return response.data;
+};
+
+/**
+ * Crea un nuevo curso en el sistema.
+ * @param {FormData} formData - Datos del curso incluyendo la imagen.
+ * @param {number|string} idDocente - ID del docente asignado.
+ */
+export const crearCurso = async (formData, idDocente) => {
+    const response = await api.post(`/cursos/crear?idDocente=${idDocente}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+};
+
+/**
+ * Actualiza la información de un curso existente.
+ * @param {number|string} idCurso - ID del curso a editar.
+ * @param {FormData} formData - Datos actualizados del curso.
+ */
+export const editarCurso = async (idCurso, formData) => {
+    const response = await api.put(`/cursos/editar/${idCurso}`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' }
+    });
+    return response.data;
+};
+
+/**
+ * Elimina un curso del sistema (Opcional, si lo necesitas).
+ */
+export const eliminarCurso = async (idCurso) => {
+    const response = await api.delete(`/cursos/eliminar/${idCurso}`);
     return response.data;
 };

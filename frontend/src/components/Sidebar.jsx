@@ -1,133 +1,78 @@
-import React, { useState, useEffect } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { Menu, X, ChevronRight, LogOut } from "lucide-react";
-import { MENU_ITEMS } from "../config/sidebarConfig"; // Importamos tu config
-
-const SidebarItem = ({ to, icon: Icon, label, isActive, onClick }) => (
-  <Link
-    to={to}
-    onClick={onClick}
-    className={`group flex items-center justify-between p-3 rounded-xl transition-all duration-200 ${
-      isActive
-        ? "bg-blue-600 text-white shadow-lg shadow-blue-900/20"
-        : "text-slate-400 hover:bg-slate-800 hover:text-white"
-    }`}
-  >
-    <div className="flex items-center space-x-3">
-      <Icon size={18} strokeWidth={2.5} />
-      <span className="text-sm font-bold">{label}</span>
-    </div>
-    <ChevronRight
-      size={14}
-      className={`transition-all duration-300 ${
-        isActive ? "opacity-100 translate-x-0" : "opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
-      }`}
-    />
-  </Link>
-);
+import React from "react";
+import { Menu, X, LogOut } from "lucide-react";
+import { useSidebar } from "../hooks/useSidebar";
+import SidebarItem from "./SidebarItem";
 
 const Sidebar = () => {
-  const navigate = useNavigate();
-  const location = useLocation();
-  const API_BASE = "http://localhost:8080";
+    const API_BASE = "http://localhost:8080";
+    const { 
+        foto, nombre, rol, isOpen, toggleSidebar, 
+        handleLogout, menuFiltrado, currentPath 
+    } = useSidebar();
 
-  const [foto, setFoto] = useState(localStorage.getItem("foto"));
-  const nombre = localStorage.getItem("nombre") || "Usuario";
-  const rol = localStorage.getItem("rol")?.toLowerCase() || "alumno";
-  const [isOpen, setIsOpen] = useState(false);
+    return (
+        <>
+            {/* BOTÓN MÓVIL */}
+            <button onClick={toggleSidebar} className="lg:hidden fixed top-4 right-4 z-50 p-2.5 bg-slate-900 text-white rounded-xl border border-slate-700 shadow-2xl">
+                {isOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
 
-  useEffect(() => {
-    const actualizarDatos = () => setFoto(localStorage.getItem("foto"));
-    window.addEventListener("perfilActualizado", actualizarDatos);
-    return () => window.removeEventListener("perfilActualizado", actualizarDatos);
-  }, []);
+            {/* OVERLAY */}
+            {isOpen && <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-40 lg:hidden" onClick={toggleSidebar} />}
 
-  useEffect(() => { setIsOpen(false); }, [location]);
-
-  const handleLogout = () => {
-    localStorage.clear();
-    navigate("/");
-  };
-
-  return (
-    <>
-      {/* BOTÓN MÓVIL */}
-      <button
-        onClick={() => setIsOpen(!isOpen)}
-        className="lg:hidden fixed top-4 right-4 z-50 p-2.5 bg-slate-900 text-white rounded-xl border border-slate-700 shadow-2xl"
-      >
-        {isOpen ? <X size={20} /> : <Menu size={20} />}
-      </button>
-
-      {/* OVERLAY */}
-      {isOpen && (
-        <div className="fixed inset-0 bg-slate-950/60 backdrop-blur-md z-40 lg:hidden" onClick={() => setIsOpen(false)} />
-      )}
-
-      <aside className={`fixed left-0 top-0 h-screen bg-slate-950 text-white flex flex-col z-40 transition-all duration-300 border-r border-slate-800/50 ${isOpen ? "w-72 translate-x-0" : "w-72 -translate-x-full lg:translate-x-0"} lg:w-64`}>
-        
-        {/* SECCIÓN PERFIL CON FALLBACK SEGURO */}
-        <div className="p-8 text-center">
-          <div className="relative inline-block group">
-            <div className="absolute -inset-1.5 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
-            <img
-              src={foto && foto !== "null" ? `${API_BASE}${foto}?t=${Date.now()}` : null}
-              alt="Avatar"
-              className="relative w-20 h-20 rounded-full border-2 border-slate-800 object-cover mx-auto bg-slate-900"
-              onError={(e) => { 
-                e.target.onerror = null;
-                e.target.src = `${API_BASE}/uploads/profiles/default.png`; 
-              }}
-            />
-            <div className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-4 border-slate-950 rounded-full"></div>
-          </div>
-          <h2 className="mt-4 font-bold text-slate-100 truncate px-2 leading-tight">{nombre}</h2>
-          <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mt-1 italic">{rol}</p>
-        </div>
-
-        {/* NAVEGACIÓN DINÁMICA BASADA EN CONFIG */}
-        <nav className="flex-1 px-4 space-y-8 overflow-y-auto custom-scrollbar pt-2">
-          {MENU_ITEMS.map((group, gIdx) => {
-            // Filtramos los items del grupo que el rol del usuario permite ver
-            const visibleItems = group.items.filter(item => item.roles.includes(rol));
-            
-            if (visibleItems.length === 0) return null;
-
-            return (
-              <div key={gIdx} className="animate-fadeIn">
-                <header className="px-4 text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] mb-4">
-                  {group.group}
-                </header>
-                <div className="space-y-1.5">
-                  {visibleItems.map((item) => (
-                    <SidebarItem
-                      key={item.to}
-                      to={item.to}
-                      icon={item.icon}
-                      label={item.label}
-                      isActive={location.pathname.startsWith(item.to)}
-                      onClick={() => setIsOpen(false)}
-                    />
-                  ))}
+            <aside className={`fixed left-0 top-0 h-screen bg-slate-950 text-white flex flex-col z-40 transition-all duration-300 border-r border-slate-800/50 ${isOpen ? "w-72 translate-x-0" : "w-72 -translate-x-full lg:translate-x-0"} lg:w-64`}>
+                
+                {/* PERFIL */}
+                <div className="p-8 text-center">
+                    <div className="relative inline-block group">
+                        <div className="absolute -inset-1.5 bg-gradient-to-tr from-blue-600 to-cyan-500 rounded-full blur opacity-20 group-hover:opacity-40 transition duration-500"></div>
+                        <img
+                            src={foto && foto !== "null" ? `${API_BASE}${foto}?t=${Date.now()}` : null}
+                            alt="Avatar"
+                            className="relative w-20 h-20 rounded-full border-2 border-slate-800 object-cover mx-auto bg-slate-900"
+                            onError={(e) => { 
+                                e.target.onerror = null;
+                                e.target.src = `${API_BASE}/uploads/profiles/default.png`; 
+                            }}
+                        />
+                        <div className="absolute bottom-1 right-1 w-4 h-4 bg-emerald-500 border-4 border-slate-950 rounded-full"></div>
+                    </div>
+                    <h2 className="mt-4 font-bold text-slate-100 truncate px-2 leading-tight">{nombre}</h2>
+                    <p className="text-[10px] font-black text-blue-500 uppercase tracking-[0.2em] mt-1 italic">{rol}</p>
                 </div>
-              </div>
-            );
-          })}
-        </nav>
 
-        {/* FOOTER - CERRAR SESIÓN */}
-        <div className="p-4 bg-slate-900/30 border-t border-slate-800/50">
-          <button 
-            onClick={handleLogout} 
-            className="w-full flex items-center space-x-3 p-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest group"
-          >
-            <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
-            <span>Cerrar Sesión</span>
-          </button>
-        </div>
-      </aside>
-    </>
-  );
+                {/* NAVEGACIÓN DINÁMICA */}
+                <nav className="flex-1 px-4 space-y-8 overflow-y-auto custom-scrollbar pt-2">
+                    {menuFiltrado.map((group, gIdx) => (
+                        <div key={gIdx} className="animate-fadeIn">
+                            <header className="px-4 text-[9px] font-black text-slate-600 uppercase tracking-[0.3em] mb-4">
+                                {group.group}
+                            </header>
+                            <div className="space-y-1.5">
+                                {group.items.map((item) => (
+                                    <SidebarItem
+                                        key={item.to}
+                                        to={item.to}
+                                        icon={item.icon}
+                                        label={item.label}
+                                        isActive={currentPath.startsWith(item.to)}
+                                    />
+                                ))}
+                            </div>
+                        </div>
+                    ))}
+                </nav>
+
+                {/* FOOTER */}
+                <div className="p-4 bg-slate-900/30 border-t border-slate-800/50">
+                    <button onClick={handleLogout} className="w-full flex items-center space-x-3 p-3 text-red-400 hover:bg-red-500/10 rounded-xl transition-all text-[10px] font-black uppercase tracking-widest group">
+                        <LogOut size={18} className="group-hover:-translate-x-1 transition-transform" />
+                        <span>Cerrar Sesión</span>
+                    </button>
+                </div>
+            </aside>
+        </>
+    );
 };
 
 export default Sidebar;

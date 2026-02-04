@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
-import { X, Save, Loader2, User, Mail, Shield, Camera, Lock } from 'lucide-react';
-import { saveUsuario } from '../../services/userService'; // Importamos tu nuevo servicio
+import { X, Save, Loader2, User, Mail, Shield, Camera, Lock, ShieldAlert } from 'lucide-react';
+import { saveUsuario } from '../../services/userService';
 
 const UsuarioAdmin = ({ isOpen, onClose, usuario = null, onSave }) => {
     const [loading, setLoading] = useState(false);
+    const [errorServer, setErrorServer] = useState(null); 
     
     const initialFormState = {
         nombre: '',
@@ -21,6 +22,7 @@ const UsuarioAdmin = ({ isOpen, onClose, usuario = null, onSave }) => {
 
     useEffect(() => {
         if (isOpen) {
+            setErrorServer(null);
             if (usuario) {
                 setFormData({
                     nombre: usuario.nombre || '',
@@ -41,32 +43,23 @@ const UsuarioAdmin = ({ isOpen, onClose, usuario = null, onSave }) => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setLoading(true);
+        setErrorServer(null);
 
-        // 1. Construimos el FormData
         const data = new FormData();
         data.append('nombre', formData.nombre);
         data.append('apellido', formData.apellido);
         data.append('correo', formData.correo);
         data.append('rol', formData.rol);
         
-        // Solo enviamos la contraseña si se ha escrito algo
-        if (formData.contrasena) {
-            data.append('password', formData.contrasena);
-        }
-        
-        if (foto) {
-            data.append('foto', foto);
-        }
+        if (formData.contrasena) data.append('password', formData.contrasena);
+        if (foto) data.append('foto', foto);
 
         try {
-            // 2. Usamos saveUsuario para crear o actualizar
             await saveUsuario(usuario?.id_usuario, data);
-            
             if (onSave) onSave(); 
             onClose();
         } catch (err) {
-            console.error("Error al guardar usuario:", err);
-            alert(err.response?.data?.mensaje || "Error al procesar la solicitud");
+            setErrorServer(err.message);
         } finally {
             setLoading(false);
         }
@@ -79,18 +72,32 @@ const UsuarioAdmin = ({ isOpen, onClose, usuario = null, onSave }) => {
             <div className="absolute inset-0 bg-slate-950/40 backdrop-blur-sm animate-fadeIn" onClick={onClose} />
             
             <form onSubmit={handleSubmit} className="relative bg-white w-full max-w-2xl rounded-[3rem] shadow-2xl overflow-hidden animate-slideUp">
-                {/* Cabecera */}
-                <div className="bg-slate-900 p-8 text-white flex justify-between items-center">
+                
+                {/* CABECERA (Header de HTML5) */}
+                <header className="bg-slate-900 p-8 text-white flex justify-between items-center">
                     <div>
-                        <h2 className="text-2xl font-black">{usuario ? 'Editar Perfil' : 'Nuevo Usuario'}</h2>
-                        <p className="text-blue-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">Sincronización vía UserService</p>
+                        <h2 className="text-2xl font-black">{usuario ? 'Editar Usuario' : 'Nuevo Usuario'}</h2>
+                        <p className="text-blue-400 text-[10px] font-bold uppercase tracking-[0.2em] mt-1">
+                            Gestión de accesos Olyxis
+                        </p>
                     </div>
                     <button type="button" onClick={onClose} className="p-2 hover:bg-white/10 rounded-full transition-colors">
                         <X size={24} />
                     </button>
-                </div>
+                </header>
 
+                {/* CUERPO DEL FORMULARIO */}
                 <div className="p-10">
+                    {/* Alerta de Error */}
+                    {errorServer && (
+                        <div className="mb-6 p-4 bg-red-50 border border-red-100 rounded-2xl flex items-center gap-3 text-red-600 animate-shake">
+                            <ShieldAlert size={20} />
+                            <p className="text-xs font-black uppercase tracking-tight leading-none">
+                                {errorServer}
+                            </p>
+                        </div>
+                    )}
+
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         {/* Avatar Picker */}
                         <div className="md:col-span-2 flex justify-center mb-6">
@@ -115,7 +122,7 @@ const UsuarioAdmin = ({ isOpen, onClose, usuario = null, onSave }) => {
                             </div>
                         </div>
 
-                        {/* Inputs del Formulario */}
+                        {/* Inputs */}
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-slate-400 ml-2">Nombre</label>
                             <input required className="w-full px-6 py-4 bg-slate-50 border-transparent rounded-2xl font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all"
@@ -146,7 +153,7 @@ const UsuarioAdmin = ({ isOpen, onClose, usuario = null, onSave }) => {
                         <div className="space-y-2">
                             <label className="text-[10px] font-black uppercase text-slate-400 ml-2 flex items-center gap-2"><Lock size={12}/> Contraseña</label>
                             <input 
-                                required={!usuario} // Obligatoria solo para nuevos registros
+                                required={!usuario} 
                                 type="password" 
                                 placeholder={usuario ? "Dejar en blanco para no cambiar" : "Mínimo 6 caracteres"}
                                 className="w-full px-6 py-4 bg-slate-50 border-transparent rounded-2xl font-bold text-slate-700 outline-none focus:bg-white focus:ring-2 focus:ring-blue-500/20 transition-all"
@@ -156,6 +163,7 @@ const UsuarioAdmin = ({ isOpen, onClose, usuario = null, onSave }) => {
                         </div>
                     </div>
 
+                    {/* Botón Guardar */}
                     <div className="mt-10">
                         <button type="submit" disabled={loading} className="w-full bg-slate-900 hover:bg-blue-600 text-white py-5 rounded-[1.5rem] font-black uppercase tracking-widest text-xs flex items-center justify-center gap-3 transition-all shadow-xl active:scale-95 disabled:bg-slate-100 disabled:text-slate-300">
                             {loading ? <Loader2 className="animate-spin" /> : <Save size={18} />}

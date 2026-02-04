@@ -97,13 +97,21 @@ public class MatriculaController {
     // 4. LISTAR TODOS LOS ALUMNOS DE UN CURSO
     @GetMapping("/curso/{idCurso}")
     @PreAuthorize("isAuthenticated()")
-    public ResponseEntity<List<Usuario>> listarAlumnosPorCurso(@PathVariable Integer idCurso) {
+    public ResponseEntity<?> listarAlumnosPorCurso(@PathVariable Integer idCurso) {
         List<Matricula> matriculas = matriculaRepository.findByCursoId(idCurso);
 
-        List<Usuario> alumnos = matriculas.stream()
-                .map(Matricula::getAlumno)
-                .collect(Collectors.toList());
+        // Creamos una lista de mapas (objetos JSON personalizados)
+        List<Map<String, Object>> respuesta = matriculas.stream().map(m -> {
+            Map<String, Object> datos = new HashMap<>();
+            datos.put("id_matricula", m.getId_matricula());
+            datos.put("id_usuario", m.getAlumno().getId_usuario());
+            datos.put("nombre", m.getAlumno().getNombre());
+            datos.put("apellido", m.getAlumno().getApellido());
+            datos.put("correo", m.getAlumno().getCorreo());
+            datos.put("foto_perfil", m.getAlumno().getFoto_perfil());
+            return datos;
+        }).collect(Collectors.toList());
 
-        return ResponseEntity.ok(alumnos);
+        return ResponseEntity.ok(respuesta);
     }
 }

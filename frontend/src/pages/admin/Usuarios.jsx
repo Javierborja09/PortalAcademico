@@ -1,62 +1,15 @@
-import React, { useEffect, useState } from 'react';
-import { getAllUsuarios, deleteUsuario } from '../../services/userService';
+import React from 'react';
+import { useUsuarios } from '../../hooks/useUsuarios';
 import UsuarioItem from './UsuarioItem';
 import UsuarioAdmin from './UsuarioAdmin';
 import { Search, UserPlus, Loader2, Users } from 'lucide-react';
 
 const Usuarios = () => {
-    const [usuarios, setUsuarios] = useState([]);
-    const [filteredUsuarios, setFilteredUsuarios] = useState([]);
-    const [searchTerm, setSearchTerm] = useState(""); 
-    const [loading, setLoading] = useState(true);
-
-    const [isModalOpen, setIsModalOpen] = useState(false);
-    const [selectedUsuario, setSelectedUsuario] = useState(null);
-
-    useEffect(() => {
-        fetchUsuarios();
-    }, []);
-
-    useEffect(() => {
-        if (!usuarios) return;
-        const results = usuarios.filter(u =>
-            `${u.nombre} ${u.apellido} ${u.correo} ${u.rol}`.toLowerCase().includes(searchTerm.toLowerCase())
-        );
-        setFilteredUsuarios(results);
-    }, [searchTerm, usuarios]);
-
-    const fetchUsuarios = async () => {
-        try {
-            setLoading(true);
-            const data = await getAllUsuarios();
-            setUsuarios(data || []);
-        } catch (err) {
-            console.error("Error cargando usuarios", err);
-        } finally {
-            setLoading(false);
-        }
-    };
-
-    const handleNuevoUsuario = () => {
-        setSelectedUsuario(null);
-        setIsModalOpen(true);
-    };
-
-    const handleEditar = (usuario) => {
-        setSelectedUsuario(usuario);
-        setIsModalOpen(true);
-    };
-
-    const handleEliminar = async (id) => {
-        if (window.confirm("¿Estás seguro?")) {
-            try {
-                await deleteUsuario(id);
-                setUsuarios(prev => prev.filter(u => u.id_usuario !== id));
-            } catch (err) {
-                alert("Error al eliminar");
-            }
-        }
-    };
+    const {
+        usuarios, loading, searchTerm, setSearchTerm,
+        isModalOpen, selectedUsuario, handleNuevoUsuario,
+        handleEditar, handleEliminar, closeModal, refreshUsuarios
+    } = useUsuarios();
 
     return (
         <div className="animate-fadeIn pb-10">
@@ -76,7 +29,7 @@ const Usuarios = () => {
                         <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
                         <input 
                             type="text"
-                            placeholder="Buscar..."
+                            placeholder="Buscar por nombre, correo o rol..."
                             className="pl-12 pr-6 py-4 w-full sm:w-72 bg-white border border-slate-100 rounded-2xl shadow-sm focus:ring-4 focus:ring-blue-500/10 transition-all font-medium outline-none"
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
@@ -102,7 +55,6 @@ const Usuarios = () => {
                             <th className="p-6 text-slate-400 font-black text-[10px] uppercase tracking-[0.2em] text-right">Gestión</th>
                         </tr>
                     </thead>
-                    {/* IMPORTANTE: tbody con tr y td para evitar el Hydration Error */}
                     <tbody className="divide-y divide-slate-50 flex flex-col md:table-row-group">
                         {loading ? (
                             <tr>
@@ -113,13 +65,12 @@ const Usuarios = () => {
                                     </div>
                                 </td>
                             </tr>
-                        ) : filteredUsuarios.length > 0 ? (
-                            filteredUsuarios.map(u => (
+                        ) : usuarios.length > 0 ? (
+                            usuarios.map(u => (
                                 <UsuarioItem 
                                     key={u.id_usuario} 
                                     usuario={u} 
                                     onEdit={handleEditar}
-                                    onDelete={handleEliminar}
                                 />
                             ))
                         ) : (
@@ -127,7 +78,7 @@ const Usuarios = () => {
                                 <td colSpan="4" className="py-24 text-center">
                                     <div className="opacity-30 flex flex-col items-center gap-4">
                                         <Search size={56} className="text-slate-300" />
-                                        <p className="text-slate-900 font-black text-lg">Sin resultados</p>
+                                        <p className="text-slate-900 font-black text-lg">Sin coincidencias</p>
                                     </div>
                                 </td>
                             </tr>
@@ -138,9 +89,9 @@ const Usuarios = () => {
 
             <UsuarioAdmin 
                 isOpen={isModalOpen}
-                onClose={() => setIsModalOpen(false)}
+                onClose={closeModal}
                 usuario={selectedUsuario}
-                onSave={fetchUsuarios} 
+                onSave={refreshUsuarios} 
             />
         </div>
     );
