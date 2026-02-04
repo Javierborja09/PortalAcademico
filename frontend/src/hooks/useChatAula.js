@@ -2,57 +2,48 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import sesionService from "../services/sesionService";
 
 export const useChatAula = (cursoId, usuarioNombre) => {
-    const [messages, setMessages] = useState(() => sesionService.obtenerHistorial(cursoId));
+    const [messages, setMessages] = useState([]);
     const [input, setInput] = useState("");
     const [isConnected, setIsConnected] = useState(false);
     const scrollRef = useRef(null);
 
-    // 1. Mejoramos el procesador para evitar duplicados exactos
     const handleIncomingMessage = useCallback((msg) => {
         if (msg.tipo === "CHAT") {
             setMessages((prev) => {
-                // Verificamos si el último mensaje es idéntico para evitar el rebote del socket
-                const ultimoMsg = prev[prev.length - 1];
-                if (ultimoMsg && 
-                    ultimoMsg.contenido === msg.contenido && 
-                    ultimoMsg.remitente === msg.remitente &&
-                    // Solo evitamos duplicados si ocurrieron hace menos de 2 segundos
-                    (Date.now() - (ultimoMsg.timestamp || 0) < 2000)) {
-                    return prev;
-                }
-                return [...prev, { ...msg, timestamp: Date.now() }];
+                const yaExiste = prev.some(m => 
+                    m.contenido === msg.contenido && 
+                    m.remitente === msg.remitente &&
+                    Math.abs(Date.now() - (m.localTimestamp || 0)) < 2000
+                );
+                if (yaExiste) return prev;
+                return [...prev, { ...msg, localTimestamp: Date.now() }];
             });
         }
     }, []);
 
     useEffect(() => {
         let subscription = null;
-        let checkInterval = null;
 
-        const subscribe = () => {
-            const client = sesionService.client;
-            if (client && client.connected) {
+        const connect = () => {
+            if (sesionService.client?.connected) {
                 setIsConnected(true);
-                // IMPORTANTE: Nos aseguramos de desuscribir cualquier intento previo
-                subscription = client.subscribe(`/topic/curso/${cursoId}`, (payload) => {
-                    handleIncomingMessage(JSON.parse(payload.body));
+                subscription = sesionService.client.subscribe(`/topic/curso/${cursoId}`, (payload) => {
+                    const msg = JSON.parse(payload.body);
+                    
+                    if (msg.tipo === "CHAT_HISTORY") {
+                        setMessages(msg.lista);
+                    } else {
+                        handleIncomingMessage(msg);
+                    }
                 });
-                return true;
+
+                // Pedimos el historial al servidor apenas conectamos
+                sesionService.client.publish({ destination: `/app/sesion.historial/${cursoId}` });
             }
-            return false;
         };
 
-        if (!subscribe()) {
-            checkInterval = setInterval(() => {
-                if (subscribe()) {
-                    clearInterval(checkInterval);
-                }
-            }, 1000);
-        }
-        return () => {
-            if (subscription) subscription.unsubscribe();
-            if (checkInterval) clearInterval(checkInterval);
-        };
+        connect();
+        return () => subscription?.unsubscribe();
     }, [cursoId, handleIncomingMessage]);
 
     useEffect(() => {
@@ -60,15 +51,17 @@ export const useChatAula = (cursoId, usuarioNombre) => {
     }, [messages]);
 
     const sendMessage = (e) => {
-        e.preventDefault();
+        if (e) e.preventDefault();
         if (input.trim() && isConnected) {
-            sesionService.enviarEvento(cursoId, {
+            const nuevoEvento = {
                 remitente: usuarioNombre,
                 contenido: input,
                 tipo: "CHAT",
                 rol: localStorage.getItem('rol'),
                 foto: localStorage.getItem('foto')
-            });
+            };
+            sesionService.enviarEvento(cursoId, nuevoEvento);
+            setMessages(prev => [...prev, { ...nuevoEvento, localTimestamp: Date.now() }]);
             setInput("");
         }
     };

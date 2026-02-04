@@ -1,5 +1,6 @@
-import React from "react";
-import { Send, WifiOff } from "lucide-react";
+import React, { useState } from "react";
+import { Send, WifiOff, Smile } from "lucide-react";
+import EmojiPicker from 'emoji-picker-react';
 import { useChatAula } from "./../hooks/useChatAula";
 import Avatar from "./common/Avatar";
 
@@ -7,11 +8,24 @@ const ChatAula = ({ cursoId, usuarioNombre }) => {
     const { 
         messages, input, setInput, isConnected, scrollRef, sendMessage 
     } = useChatAula(cursoId, usuarioNombre);
+    
+    const [showEmojiPicker, setShowEmojiPicker] = useState(false);
+
+    const onEmojiClick = (emojiData) => {
+        setInput(prev => prev + emojiData.emoji);
+    };
+
+    const handleKeyDown = (e) => {
+        if (e.key === "Enter" && !e.shiftKey) {
+            e.preventDefault();
+            sendMessage(e);
+        }
+    };
 
     return (
-        <div className="flex flex-col h-full bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden">
+        <div className="flex flex-col h-full bg-white rounded-[2rem] border border-slate-100 shadow-xl overflow-hidden relative">
             {/* Header del Chat */}
-            <div className="bg-slate-900 p-4 text-white flex items-center justify-between">
+            <div className="bg-slate-900 p-4 text-white flex items-center justify-between z-10">
                 <div className="flex items-center gap-2">
                     <div className={`w-2 h-2 rounded-full ${isConnected ? "bg-emerald-500 animate-pulse" : "bg-red-500"}`} />
                     <h3 className="text-[10px] font-black uppercase tracking-widest opacity-70">Chat de la sesión</h3>
@@ -36,10 +50,10 @@ const ChatAula = ({ cursoId, usuarioNombre }) => {
                 {messages.map((msg, index) => {
                     const esMio = msg.remitente === usuarioNombre;
                     const esDocente = msg.rol?.toLowerCase() === 'docente';
+                    const messageKey = msg.id || `${msg.remitente}-${index}`;
 
                     return (
-                        <div key={index} className={`flex gap-3 ${esMio ? "flex-row-reverse" : "flex-row"}`}>
-                            {/* Avatar del Remitente */}
+                        <div key={messageKey} className={`flex gap-3 ${esMio ? "flex-row-reverse" : "flex-row"}`}>
                             <div className="flex-shrink-0 mt-1">
                                 <Avatar 
                                     src={msg.foto} 
@@ -48,36 +62,28 @@ const ChatAula = ({ cursoId, usuarioNombre }) => {
                                 />
                             </div>
 
-                            {/* Contenido del Mensaje */}
                             <div className={`flex flex-col ${esMio ? "items-end" : "items-start"} max-w-[75%]`}>
-                                {/* Info del Remitente */}
                                 <div className="flex items-center gap-2 mb-1.5 px-1">
                                     {!esMio && (
                                         <span className="text-[9px] font-black uppercase text-indigo-500 truncate max-w-[100px]">
                                             {msg.remitente}
                                         </span>
                                     )}
-                                    
                                     <span className={`text-[7px] font-black uppercase px-1.5 py-0.5 rounded-md border ${
-                                        esDocente 
-                                            ? "bg-amber-50 text-amber-600 border-amber-200" 
-                                            : "bg-blue-50 text-blue-600 border-blue-100"
+                                        esDocente ? "bg-amber-50 text-amber-600 border-amber-200" : "bg-blue-50 text-blue-600 border-blue-100"
                                     }`}>
                                         {esDocente ? 'Docente' : 'Alumno'}
                                     </span>
-
-                                    {esMio && (
-                                        <span className="text-[9px] font-black uppercase text-slate-400">Tú</span>
-                                    )}
+                                    {esMio && <span className="text-[9px] font-black uppercase text-slate-400">Tú</span>}
                                 </div>
 
-                                {/* Burbuja */}
                                 <div className={`p-3 rounded-2xl shadow-sm transition-all hover:shadow-md ${
-                                    esMio
-                                        ? "bg-indigo-600 text-white rounded-tr-none"
-                                        : "bg-white text-slate-800 border border-slate-200 rounded-tl-none"
+                                    esMio ? "bg-indigo-600 text-white rounded-tr-none" : "bg-white text-slate-800 border border-slate-200 rounded-tl-none"
                                 }`}>
-                                    <p className="text-sm font-medium leading-tight break-words">{msg.contenido}</p>
+                                    {/* whitespace-pre-wrap permite ver los saltos de línea enviados */}
+                                    <p className="text-sm font-medium leading-tight break-words whitespace-pre-wrap">
+                                        {msg.contenido}
+                                    </p>
                                 </div>
                             </div>
                         </div>
@@ -86,20 +92,44 @@ const ChatAula = ({ cursoId, usuarioNombre }) => {
                 <div ref={scrollRef} />
             </div>
 
-            {/* Formulario de envío */}
-            <form onSubmit={sendMessage} className="p-3 bg-white border-t border-slate-100 flex gap-2">
-                <input
-                    type="text"
+            {/* Selector de Emojis */}
+            {showEmojiPicker && (
+                <div className="absolute bottom-24 left-4 z-50 shadow-2xl rounded-2xl overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
+                    <EmojiPicker 
+                        onEmojiClick={onEmojiClick} 
+                        theme="light"
+                        width={280}
+                        height={350}
+                        skinTonesDisabled
+                    />
+                </div>
+            )}
+
+            {/* Formulario de envío multilínea */}
+            <form onSubmit={sendMessage} className="p-3 bg-white border-t border-slate-100 flex gap-2 items-end">
+                <button
+                    type="button"
+                    onClick={() => setShowEmojiPicker(!showEmojiPicker)}
+                    className={`p-2 mb-1 rounded-xl transition-all ${showEmojiPicker ? 'text-indigo-600 bg-indigo-50' : 'text-slate-400 hover:bg-slate-100'}`}
+                >
+                    <Smile size={22} />
+                </button>
+
+                <textarea
+                    rows="1"
                     disabled={!isConnected}
                     value={input}
+                    onFocus={() => setShowEmojiPicker(false)}
                     onChange={(e) => setInput(e.target.value)}
+                    onKeyDown={handleKeyDown}
                     placeholder={isConnected ? "Escribe un mensaje..." : "Conectando..."}
-                    className="flex-1 bg-slate-100 border-none rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all placeholder:text-slate-400"
+                    className="flex-1 bg-slate-100 border-none rounded-xl px-4 py-3 text-sm font-bold text-slate-800 outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all resize-none max-h-32 custom-scrollbar"
                 />
+                
                 <button
                     type="submit"
                     disabled={!isConnected || !input.trim()}
-                    className="p-3 bg-slate-900 text-white rounded-xl hover:bg-indigo-600 transition-all active:scale-90 disabled:opacity-30 disabled:grayscale shadow-lg shadow-indigo-100"
+                    className="p-3 mb-0.5 bg-slate-900 text-white rounded-xl hover:bg-indigo-600 transition-all active:scale-90 disabled:opacity-30 shadow-lg"
                 >
                     <Send size={18} />
                 </button>
