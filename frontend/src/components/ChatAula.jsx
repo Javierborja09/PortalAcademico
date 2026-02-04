@@ -3,7 +3,8 @@ import { Send, WifiOff } from 'lucide-react';
 import sesionService from './../services/sesionService';
 
 const ChatAula = ({ cursoId, usuarioNombre }) => {
-    const [messages, setMessages] = useState([]);
+    // 🚩 Inicializamos el estado directamente con el historial guardado en el servicio
+    const [messages, setMessages] = useState(() => sesionService.obtenerHistorial(cursoId));
     const [input, setInput] = useState("");
     const [isConnected, setIsConnected] = useState(false);
     const scrollRef = useRef(null);
@@ -12,9 +13,9 @@ const ChatAula = ({ cursoId, usuarioNombre }) => {
         const client = sesionService.client;
 
         const handleIncomingMessage = (msg) => {
-            // 🚩 FILTRO: Solo agregamos mensajes de CHAT. 
-            // Los JOIN/LEAVE ahora los maneja el padre como popups.
+            // Solo procesamos mensajes de tipo CHAT
             if (msg.tipo === 'CHAT') {
+                // Actualizamos el estado local para la vista actual
                 setMessages((prev) => [...prev, msg]);
             }
         };
@@ -35,6 +36,8 @@ const ChatAula = ({ cursoId, usuarioNombre }) => {
             const checkInterval = setInterval(() => {
                 if (sesionService.client?.connected) {
                     setIsConnected(true);
+                    // Al conectar tarde, recuperamos lo que el servicio haya captado en memoria
+                    setMessages(sesionService.obtenerHistorial(cursoId));
                     clearInterval(checkInterval);
                 }
             }, 1000);
@@ -42,7 +45,7 @@ const ChatAula = ({ cursoId, usuarioNombre }) => {
         }
     }, [cursoId]);
 
-    // Auto-scroll al recibir mensajes nuevos
+    // Auto-scroll al recibir mensajes nuevos o al abrir el chat
     useEffect(() => {
         scrollRef.current?.scrollIntoView({ behavior: "smooth" });
     }, [messages]);
@@ -91,11 +94,13 @@ const ChatAula = ({ cursoId, usuarioNombre }) => {
                     >
                         <div className={`max-w-[85%] p-3 rounded-2xl shadow-sm ${
                             msg.remitente === usuarioNombre 
-                            ? 'bg-indigo-600 text-white rounded-tr-none' 
-                            : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none'
+                            ? 'bg-indigo-600 text-white rounded-tr-none text-right' 
+                            : 'bg-white text-slate-800 border border-slate-200 rounded-tl-none text-left'
                         }`}>
                             {msg.remitente !== usuarioNombre && (
-                                <p className="text-[9px] font-black uppercase text-indigo-500 mb-1">{msg.remitente}</p>
+                                <p className="text-[9px] font-black uppercase text-indigo-500 mb-1 truncate">
+                                    {msg.remitente}
+                                </p>
                             )}
                             <p className="text-sm font-medium leading-tight">
                                 {msg.contenido}

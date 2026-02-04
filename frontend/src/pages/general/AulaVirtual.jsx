@@ -25,12 +25,13 @@ const AulaVirtual = () => {
     const [isUsersModalOpen, setIsUsersModalOpen] = useState(false);
     const [errorAcceso, setErrorAcceso] = useState(false);
 
+    const rol = localStorage.getItem('rol')?.toLowerCase();
+    const usuarioNombre = localStorage.getItem('nombre') || 'Usuario';
+
+    // CORRECCIÓN: Navegación absoluta para romper el bucle del historial
     const handleBack = () => {
         navigate('/cursos');
     };
-
-    const rol = localStorage.getItem('rol')?.toLowerCase();
-    const usuarioNombre = localStorage.getItem('nombre') || 'Usuario';
 
     useEffect(() => {
         sesionService.conectar(id, (msg) => {
@@ -89,7 +90,7 @@ const AulaVirtual = () => {
                     </p>
                 </div>
                 <button 
-                    onClick={() => navigate('/cursos')}
+                    onClick={handleBack}
                     className="w-full md:w-auto px-10 py-4 md:py-5 bg-white text-slate-950 rounded-2xl font-black uppercase text-[10px] md:text-xs tracking-widest hover:bg-red-500 hover:text-white transition-all shadow-xl"
                 >
                     Volver a mis cursos
@@ -108,7 +109,6 @@ const AulaVirtual = () => {
     return (
         <div className="animate-fadeIn pb-20 w-full max-w-7xl mx-auto px-4 md:px-8">
             <div className="flex items-center justify-between mb-6 md:mb-8 pt-4">
-                {/* CAMBIO: Usar handleBack en lugar de navigate(-1) */}
                 <button 
                     onClick={handleBack} 
                     className="flex items-center gap-2 text-slate-400 hover:text-blue-600 font-bold text-xs md:text-sm group transition-all"
@@ -122,7 +122,7 @@ const AulaVirtual = () => {
 
             <AulaBanner curso={curso} />
 
-            {/* BANNER SESIÓN - Responsivo */}
+            {/* BANNER SESIÓN */}
             <div className={`mb-8 md:mb-10 rounded-[2.5rem] md:rounded-[3rem] p-1 border shadow-2xl overflow-hidden relative transition-all duration-700 ${sesionActiva ? 'bg-emerald-950 border-emerald-500/30' : 'bg-slate-900 border-white/5'}`}>
                 {sesionActiva && <div className="absolute inset-0 bg-emerald-500/10 animate-pulse" />}
                 <div className="relative p-6 md:p-10 flex flex-col md:flex-row items-center justify-between gap-6 md:gap-8 text-white">
@@ -158,7 +158,7 @@ const AulaVirtual = () => {
                 </div>
             </div>
 
-            {/* GRID DE INFORMACIÓN - Responsivo (1 col en móvil, 2 en desktop) */}
+            {/* GRID DE INFORMACIÓN */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 md:gap-8">
                 <div className="bg-white p-6 md:p-8 rounded-[2rem] md:rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center gap-4 md:gap-6 group hover:shadow-xl transition-all">
                     <div className="w-16 h-16 md:w-20 md:h-20 rounded-2xl md:rounded-3xl bg-blue-50 flex items-center justify-center text-blue-600 group-hover:bg-blue-600 group-hover:text-white transition-colors duration-500">

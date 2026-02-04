@@ -6,6 +6,7 @@ import lombok.Data;
 public class MensajeChat {
     private String contenido;
     private String remitente;
-    private String tipo; // "CHAT", "JOIN", "LEAVE"
+    private String tipo;    // "CHAT", "JOIN", "LEAVE", "START_SESSION", etc.
     private Integer cursoId;
+    private String rol;    
 }
