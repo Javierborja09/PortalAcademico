@@ -10,15 +10,19 @@ import java.util.List;
 @Repository
 public interface CursoRepository extends JpaRepository<Curso, Integer> {
 
-    // 1. Agregamos JOIN FETCH para cargar al docente de una vez y evitar múltiples selects
-    @Query("SELECT c FROM Curso c JOIN FETCH c.docente WHERE c.docente.id_usuario = :idDocente")
+    // 1. Cursos del docente que NO han finalizado
+    @Query("SELECT c FROM Curso c JOIN FETCH c.docente " +
+           "WHERE c.docente.id_usuario = :idDocente " +
+           "AND c.fechaFin >= CURRENT_DATE")
     List<Curso> findByDocenteId(@Param("idDocente") Integer idDocente);
 
-    // 2. Traemos los cursos del alumno cargando también la información del docente del curso
-    @Query("SELECT m.curso FROM Matricula m JOIN m.curso c JOIN FETCH c.docente WHERE m.alumno.id_usuario = :idAlumno")
+    // 2. Cursos del alumno que NO han finalizado
+    @Query("SELECT m.curso FROM Matricula m JOIN m.curso c JOIN FETCH c.docente " +
+           "WHERE m.alumno.id_usuario = :idAlumno " +
+           "AND c.fechaFin >= CURRENT_DATE")
     List<Curso> findCursosByAlumnoId(@Param("idAlumno") Integer idAlumno);
 
-    // 3. Validación de matrícula (Cambié 'id' por 'id_curso' para que coincida con tu modelo de Anuncio)
+    // 3. Validación de matrícula     
     @Query("SELECT COUNT(m) > 0 FROM Matricula m WHERE m.curso.id_curso = :cursoId AND m.alumno.correo = :email")
     boolean existsByCursoIdAndAlumnoEmail(@Param("cursoId") Integer cursoId, @Param("email") String email);
     
