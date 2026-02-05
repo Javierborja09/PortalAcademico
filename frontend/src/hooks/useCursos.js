@@ -1,19 +1,19 @@
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { 
     getCursosByAlumno, 
     getAllCursos, 
     getCursosByDocente 
 } from "@/services/courseService";
+
 /**
- * Hook para gestionar la lógica de la lista de cursos.
- * Maneja la carga inicial, el refresco de datos y el estado del modal de admin.
+ * Hook para gestionar la lógica de la lista de cursos con filtrado integrado.
  */
 export const useCursos = () => {
     const [cursos, setCursos] = useState([]);
     const [loading, setLoading] = useState(true);
+    const [searchTerm, setSearchTerm] = useState(""); 
     const [isAdminModalOpen, setIsAdminModalOpen] = useState(false);
     
-    // Obtenemos datos de sesión
     const userId = localStorage.getItem('userId');
     const rol = localStorage.getItem('rol')?.toLowerCase();
 
@@ -24,7 +24,6 @@ export const useCursos = () => {
             setLoading(true);
             let data = [];
 
-            // Estrategia de carga según rol
             if (rol === 'admin') {
                 data = await getAllCursos();
             } else if (rol === 'docente') {
@@ -33,7 +32,7 @@ export const useCursos = () => {
                 data = await getCursosByAlumno(userId);
             }
 
-            setCursos(data);
+            setCursos(data || []);
         } catch (error) {
             console.error("Error al cargar cursos en el hook:", error);
         } finally {
@@ -45,13 +44,30 @@ export const useCursos = () => {
         cargarDatos();
     }, [cargarDatos]);
 
+    /**
+     * Lógica de filtrado reactiva:
+     * Filtra por nombreCurso o codigoCurso ignorando mayúsculas/minúsculas.
+     */
+    const cursosFiltrados = useMemo(() => {
+        if (!searchTerm.trim()) return cursos;
+
+        const target = searchTerm.toLowerCase().trim();
+        return cursos.filter(curso => 
+            curso.nombreCurso?.toLowerCase().includes(target) || 
+            curso.codigoCurso?.toLowerCase().includes(target)
+        );
+    }, [cursos, searchTerm]);
+
     const openAdminModal = () => setIsAdminModalOpen(true);
     const closeAdminModal = () => setIsAdminModalOpen(false);
 
     return {
-        cursos,
+        cursos: cursosFiltrados, 
+        totalOriginal: cursos.length,
         loading,
         rol,
+        searchTerm,
+        setSearchTerm,
         isAdminModalOpen,
         openAdminModal,
         closeAdminModal,

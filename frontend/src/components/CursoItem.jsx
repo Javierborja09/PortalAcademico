@@ -11,7 +11,7 @@ import {
 } from "lucide-react";
 import { useCursoItem } from "@/hooks/useCursoItem";
 import CursoDetalle from "@/components/CursoDetalle";
-import CursoAdmin from "@/pages/admin/CursoAdmin";
+import CursoAdmin from "@/components/CursoAdmin";
 import MatriculaAdmin from "@/components/MatriculaAdmin";
 import Avatar from "@/components/common/Avatar";
 const CursoItem = ({ curso, rol, onRefresh }) => {
