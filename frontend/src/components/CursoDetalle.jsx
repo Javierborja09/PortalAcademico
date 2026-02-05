@@ -1,9 +1,9 @@
 import React from 'react';
 import { X, CalendarDays, BookOpen } from 'lucide-react';
 import { useCursoDetalle } from '../hooks/useCursoDetalle'; 
-import AnuncioAdmin from './AnuncioAdmin';
-import AnuncioCard from './AnuncioCard';
-import HorarioCard from './HorarioCard';
+import AnuncioAdmin from '@/components/AnuncioAdmin';
+import AnuncioCard from '@/components/AnuncioCard';
+import HorarioCard from '@/components/HorarioCard';
 
 const CursoDetalle = ({ isOpen, onClose, curso, horarios }) => {
     const {

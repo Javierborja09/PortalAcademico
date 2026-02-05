@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, UserPlus, Trash2, Search, Loader2, UserCheck } from 'lucide-react';
-import { useMatriculaAdmin } from './../../hooks/useMatriculaAdmin';
-import Avatar from './../../components/common/Avatar';
+import { useMatriculaAdmin } from '@/hooks/useMatriculaAdmin';
+import Avatar from '@/components/common/Avatar';
 
 const MatriculaAdmin = ({ isOpen, onClose, curso }) => {
     const {

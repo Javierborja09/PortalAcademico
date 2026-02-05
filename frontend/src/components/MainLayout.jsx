@@ -1,7 +1,6 @@
 import React from 'react';
 import { Outlet } from 'react-router-dom';
-import Sidebar from './Sidebar';
-
+import Sidebar from '@/components/Sidebar';
 const MainLayout = () => {
     return (
         <div className="flex min-h-screen bg-[#f8f9fa]">

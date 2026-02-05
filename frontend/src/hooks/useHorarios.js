@@ -1,6 +1,5 @@
 import { useState, useEffect, useCallback } from "react";
-import { getAllHorarios, deleteHorario } from "../services/horarioService";
-
+import { getAllHorarios, deleteHorario } from "@/services/horarioService";
 /**
  * Hook para gestionar la lógica del cronograma de horarios.
  * Ahora desacoplado de la configuración de API directa.

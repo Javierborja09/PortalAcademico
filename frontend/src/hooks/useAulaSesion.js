@@ -1,8 +1,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import sesionService from "../services/sesionService";
-import { getCursoById } from "../services/courseService"; // Importamos el servicio de cursos
-
+import sesionService from "@/services/sesionService";
+import { getCursoById } from "@/services/courseService";
 /**
  * Hook para gestionar la experiencia de la clase en vivo.
  * Ahora incluye la carga de metadatos del curso (Nombre, etc).

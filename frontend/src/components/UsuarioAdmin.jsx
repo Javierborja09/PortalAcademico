@@ -1,7 +1,7 @@
 import React from 'react';
 import { X, Save, Loader2, Mail, Shield, Camera, Lock, ShieldAlert } from 'lucide-react';
-import { useUsuarioAdmin } from './../../hooks/useUsuarioAdmin';
-import Avatar from './../../components/common/Avatar';
+import { useUsuarioAdmin } from '@/hooks/useUsuarioAdmin';
+import Avatar from '@/components/common/Avatar';
 
 const UsuarioAdmin = ({ isOpen, onClose, usuario = null, onSave }) => {
     const {

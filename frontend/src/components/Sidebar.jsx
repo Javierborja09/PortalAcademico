@@ -1,9 +1,8 @@
 import React from 'react';
 import { Menu, X, LogOut } from "lucide-react";
-import { useSidebar } from "./../hooks/useSidebar";
-import SidebarItem from "./SidebarItem";
-import Avatar from "./common/Avatar";
-
+import { useSidebar } from "@/hooks/useSidebar";
+import SidebarItem from "@/components/SidebarItem";
+import Avatar from "@/components/common/Avatar";
 const Sidebar = () => {
     const { 
         foto, nombre, rol, isOpen, toggleSidebar, 

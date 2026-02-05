@@ -1,5 +1,4 @@
-import api from '../api/axiosConfig';
-
+import api from '@/api/axiosConfig';
 export const getAnunciosByCurso = async (idCurso) => {
     
     const response = await api.get(`/anuncios/curso/${idCurso}`);

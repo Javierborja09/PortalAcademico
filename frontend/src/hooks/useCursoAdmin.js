@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { getAllUsuarios } from "../services/userService";
-import { crearCurso, editarCurso } from "../services/courseService";
+import { crearCurso, editarCurso } from "@/services/courseService";
 
 export const useCursoAdmin = (curso, isOpen, onClose, onSave) => {
   const [loading, setLoading] = useState(false);

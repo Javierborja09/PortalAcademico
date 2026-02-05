@@ -1,5 +1,5 @@
 import { useState, useEffect, useRef, useCallback } from "react";
-import sesionService from "../services/sesionService";
+import sesionService from "@/services/sesionService";
 
 export const useChatAula = (cursoId, usuarioNombre) => {
     const [messages, setMessages] = useState([]);

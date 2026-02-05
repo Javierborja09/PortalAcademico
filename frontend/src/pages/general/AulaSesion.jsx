@@ -3,9 +3,9 @@ import {
     MicOff, VideoOff, LogOut, Settings, Users, 
     MessageSquare, User, ShieldCheck, CheckCircle2, Loader2, X 
 } from 'lucide-react';
-import { useAulaSesion } from '../../hooks/useAulaSesion';
-import ChatAula from '../../components/ChatAula';
-import AulaSesionParticipantes from '../../components/AulaSesionParticipantes';
+import { useAulaSesion } from '@/hooks/useAulaSesion';
+import ChatAula from '@/components/ChatAula';
+import AulaSesionParticipantes from '@/components/AulaSesionParticipantes';
 
 const AulaSesion = () => {
     const {

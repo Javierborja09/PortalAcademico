@@ -9,11 +9,11 @@ import {
   Users,
   Image as ImageIcon,
 } from "lucide-react";
-import { useCursoItem } from "../hooks/useCursoItem";
-import CursoDetalle from "./CursoDetalle";
-import CursoAdmin from "../pages/admin/CursoAdmin";
-import MatriculaAdmin from "../pages/admin/MatriculaAdmin";
-import Avatar from './common/Avatar';
+import { useCursoItem } from "@/hooks/useCursoItem";
+import CursoDetalle from "@/components/CursoDetalle";
+import CursoAdmin from "@/pages/admin/CursoAdmin";
+import MatriculaAdmin from "@/components/MatriculaAdmin";
+import Avatar from "@/components/common/Avatar";
 const CursoItem = ({ curso, rol, onRefresh }) => {
   const { modals, horarios, handleOpenDetails, handleIrAAulaVirtual } =
     useCursoItem(curso.id_curso);

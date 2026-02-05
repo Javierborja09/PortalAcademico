@@ -7,7 +7,7 @@ import {
   UserCog,
   Hash,
 } from "lucide-react";
-import Avatar from './common/Avatar';
+import Avatar from "@/components/common/Avatar";
 const UsuarioItem = ({ usuario, onEdit }) => {
   if (!usuario) return null;
   // CONFIGURACIÓN DE ROLES

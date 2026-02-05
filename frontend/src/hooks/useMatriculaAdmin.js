@@ -1,11 +1,10 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
-import { getAllUsuarios } from '../services/userService';
+import { getAllUsuarios } from '@/services/userService';
 import { 
     matricularAlumno, 
     retirarAlumno, 
     getIntegrantesCurso 
-} from '../services/matriculaService';
-
+} from '@/services/matriculaService';
 /**
  * Hook para gestionar la lógica de inscripciones.
  * Ahora utiliza servicios desacoplados para mayor mantenibilidad.

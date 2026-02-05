@@ -3,13 +3,11 @@ import {
     User, Users, Info, ArrowLeft, Loader2, 
     GraduationCap, BookOpen, Video, Play, ExternalLink, ShieldAlert
 } from 'lucide-react';
-import { useAulaVirtual } from './../../hooks/useAulaVirtual';
-
-// Componentes estandarizados con Aliases
-import AulaBanner from './../../components/AulaBanner';
-import AulaIntegrantes from './../../components/AulaIntegrantes';
-import AulaDetalle from './../../components/AulaDetalle';
-import Avatar from './../../components/common/Avatar';
+import { useAulaVirtual } from '@/hooks/useAulaVirtual';
+import AulaBanner from '@/components/AulaBanner';
+import AulaIntegrantes from '@/components/AulaIntegrantes';
+import AulaDetalle from '@/components/AulaDetalle';
+import Avatar from '@/components/common/Avatar';
 
 const AulaVirtual = () => {
     const { 

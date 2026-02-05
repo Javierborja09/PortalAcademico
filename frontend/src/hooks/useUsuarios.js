@@ -1,6 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from "react";
-import { getAllUsuarios } from "../services/userService";
-
+import { getAllUsuarios } from "@/services/userService";
 /**
  * Hook para la gestión administrativa de usuarios.
  * Controla el ciclo de vida de los datos, búsqueda y estados de modales.

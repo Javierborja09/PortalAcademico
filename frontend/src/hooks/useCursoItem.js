@@ -1,7 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-// Importamos el servicio en lugar de la instancia de API directamente
-import { getHorariosByCurso } from "../services/horarioService";
+import { getHorariosByCurso } from "@/services/horarioService";
 
 /**
  * Hook para gestionar la lógica individual de cada ítem de curso.

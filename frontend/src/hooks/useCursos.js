@@ -3,8 +3,7 @@ import {
     getCursosByAlumno, 
     getAllCursos, 
     getCursosByDocente 
-} from "../services/courseService";
-
+} from "@/services/courseService";
 /**
  * Hook para gestionar la lógica de la lista de cursos.
  * Maneja la carga inicial, el refresco de datos y el estado del modal de admin.

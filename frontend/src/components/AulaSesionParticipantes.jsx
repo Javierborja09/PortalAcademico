@@ -1,6 +1,6 @@
 import React from 'react';
 import { User as UserIcon, ShieldCheck } from 'lucide-react';
-import { useParticipantes } from '../hooks/useParticipantes';
+import { useParticipantes } from '@/hooks/useParticipantes';
 
 const AulaSesionParticipantes = ({ cursoId }) => {
     const { participantes, usuarioNombreActual, totalConectados } = useParticipantes(cursoId);

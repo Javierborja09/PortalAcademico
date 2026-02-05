@@ -1,6 +1,6 @@
 import React from 'react';
 import { X, Save, Clock, MapPin, CalendarDays, BookOpen, Loader2 } from 'lucide-react';
-import { useHorarioAdmin } from '../../hooks/useHorarioAdmin';
+import { useHorarioAdmin } from '@/hooks/useHorarioAdmin';
 
 const HorarioAdmin = ({ isOpen, onClose, horario = null, onSave }) => {
     const { 

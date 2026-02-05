@@ -1,5 +1,4 @@
-import api from '../api/axiosConfig';
-
+import api from '@/api/axiosConfig';
 /**
  * Recupera todos los horarios registrados en el sistema (Uso administrativo).
  * @returns {Promise<Array>} Lista completa de horarios.

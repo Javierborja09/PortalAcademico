@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { login as loginService } from "../services/userService"; // Asegúrate de que apunte a tu servicio documentado
+import { login as loginService } from "@/services/userService";
 
 /**
  * Hook personalizado para gestionar la lógica de autenticación.

@@ -1,8 +1,8 @@
 import React, { useState } from "react";
 import { Send, WifiOff, Smile } from "lucide-react";
 import EmojiPicker from 'emoji-picker-react';
-import { useChatAula } from "./../hooks/useChatAula";
-import Avatar from "./common/Avatar";
+import { useChatAula } from "@/hooks/useChatAula";
+import Avatar from "@/components/common/Avatar";
 
 const ChatAula = ({ cursoId, usuarioNombre }) => {
     const { 

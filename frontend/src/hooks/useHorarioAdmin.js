@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { getAllCursos } from '../services/courseService';
-import { addHorario, updateHorario } from '../services/horarioService';
+import { getAllCursos } from '@/services/courseService';
+import { addHorario, updateHorario } from '@/services/horarioService';
 
 export const useHorarioAdmin = (horario, isOpen, onSave, onClose) => {
     const [loading, setLoading] = useState(false);

@@ -1,6 +1,6 @@
 import React from "react";
 import { Users, Mail, X } from "lucide-react";
-import Avatar from "./common/Avatar"; // Importando con tu nuevo alias
+import Avatar from "@/components/common/Avatar";
 
 const AulaIntegrantes = ({ isOpen, onClose, integrantes }) => {
   if (!isOpen) return null;

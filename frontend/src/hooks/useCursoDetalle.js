@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { getAnunciosByCurso, eliminarAnuncio } from './../services/anuncioService';
+import { getAnunciosByCurso, eliminarAnuncio } from '@/services/anuncioService';
 
 export const useCursoDetalle = (isOpen, curso) => {
     const [anuncios, setAnuncios] = useState([]);

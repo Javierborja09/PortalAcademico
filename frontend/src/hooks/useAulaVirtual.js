@@ -1,8 +1,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { getCursoById } from "../services/courseService";
-import { getIntegrantesCurso } from "../services/matriculaService";
-import sesionService from "../services/sesionService";
+import { getCursoById } from "@/services/courseService";
+import { getIntegrantesCurso } from "@/services/matriculaService";
+import sesionService from "@/services/sesionService";
 
 /**
  * Hook maestro para el Aula Virtual.

@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
-import { MENU_ITEMS } from "../config/sidebarConfig";
+import { MENU_ITEMS } from "@/config/sidebarConfig";
 
 export const useSidebar = () => {
     const location = useLocation();

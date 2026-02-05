@@ -1,7 +1,7 @@
 import React from "react";
 import { X, Save, Upload, Loader2, BookOpen, UserCheck, Hash } from "lucide-react";
-import { useCursoAdmin } from "../../hooks/useCursoAdmin";
-import Avatar from "../../components/common/Avatar";
+import { useCursoAdmin } from "@/hooks/useCursoAdmin";
+import Avatar from "@/components/common/Avatar";
 
 const CursoAdmin = ({ isOpen, onClose, curso = null, onSave }) => {
   const {

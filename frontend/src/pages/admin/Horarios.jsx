@@ -1,8 +1,8 @@
 import React from 'react';
 import { Loader2, CalendarClock, Plus, Search } from 'lucide-react';
-import { useHorarios } from '../../hooks/useHorarios';
-import HorarioItem from './HorarioItem';
-import HorarioAdmin from './../admin/HorarioAdmin';
+import { useHorarios } from '@/hooks/useHorarios';
+import HorarioItem from '@/components/HorarioItem'; 
+import HorarioAdmin from '@/components/HorarioAdmin';
 
 const Horarios = () => {
     const {

@@ -1,4 +1,4 @@
-import api from '../api/axiosConfig';
+import api from '@/api/axiosConfig';
 
 /**
  * Registra la matrícula de un alumno en un curso específico.

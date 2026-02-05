@@ -1,7 +1,7 @@
 import React from "react";
 import { usePerfil } from "../hooks/usePerfil";
 import { User, ShieldCheck, Camera, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
-import Avatar from "./../components/common/Avatar"; 
+import Avatar from "@/components/common/Avatar";
 
 const Perfil = () => {
   const { 

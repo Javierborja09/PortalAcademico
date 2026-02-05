@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { saveUsuario } from './../services/userService';
+import { saveUsuario } from '@/services/userService';
 
 export const useUsuarioAdmin = (usuario, isOpen, onClose, onSave) => {
     const [loading, setLoading] = useState(false);

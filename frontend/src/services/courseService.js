@@ -1,4 +1,4 @@
-import api from '../api/axiosConfig';
+import api from '@/api/axiosConfig';
 
 /**
  * Obtiene la lista de cursos en los que un alumno específico está matriculado.

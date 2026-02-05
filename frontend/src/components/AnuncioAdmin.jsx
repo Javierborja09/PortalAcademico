@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { X, Send, Calendar } from 'lucide-react';
-import { crearAnuncio, editarAnuncio } from '../services/anuncioService';
+import { crearAnuncio, editarAnuncio } from '@/services/anuncioService';
 
 const AnuncioAdmin = ({ idCurso, onClose, onSuccess, anuncioAEditar }) => {
     const isEditing = !!anuncioAEditar;

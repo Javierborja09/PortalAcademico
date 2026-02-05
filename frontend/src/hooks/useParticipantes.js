@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import sesionService from "../services/sesionService";
+import sesionService from "@/services/sesionService";
 
 /**
  * Hook para gestionar la lista de participantes en tiempo real.

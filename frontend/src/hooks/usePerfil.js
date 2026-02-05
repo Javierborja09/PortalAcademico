@@ -1,6 +1,5 @@
 import { useState, useEffect } from "react";
-import { updateProfile } from "../services/userService"; // Usamos el servicio documentado
-
+import { updateProfile } from "@/services/userService";
 /**
  * Hook personalizado para la gestión del perfil de usuario.
  * Maneja la previsualización de archivos, carga de datos y sincronización con localStorage.
