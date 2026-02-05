@@ -11,25 +11,45 @@ import org.springframework.web.bind.annotation.*;
 
 import com.cibertec.portal_academico.servicios.AnuncioService;
 
+/**
+ * Controlador REST para la gestión de anuncios de cursos.
+ * Proporciona endpoints para listar, crear, editar y eliminar anuncios.
+ */
 @RestController
 @RequestMapping("/api/anuncios")
-@CrossOrigin(origins = "*")
+@CrossOrigin(origins = "*") // Permite peticiones desde cualquier origen (Frontend)
 public class AnuncioController {
 
     @Autowired
     private AnuncioService anuncioService;
 
+    /**
+     * Obtiene la lista de anuncios de un curso específico.
+     * @param idCurso ID del curso a consultar.
+     * @param authentication Información del usuario autenticado (inyectado por Spring Security).
+     * @return Lista de anuncios filtrada según el rol del usuario.
+     */
     @GetMapping("/curso/{idCurso}")
-    @PreAuthorize("isAuthenticated()")
+    @PreAuthorize("isAuthenticated()") // Cualquier usuario con sesión activa puede consultar
     public ResponseEntity<?> listarPorCurso(@PathVariable Integer idCurso, Authentication authentication) {
+        // Verifica si el usuario autenticado tiene el rol de 'docente'
         boolean esDocente = authentication.getAuthorities().stream()
                 .anyMatch(a -> a.getAuthority().equalsIgnoreCase("docente"));
 
+        // El servicio decidirá si muestra anuncios ocultos/borradores si es docente
         return ResponseEntity.ok(anuncioService.listarPorCurso(idCurso, esDocente));
     }
 
+    /**
+     * Crea un nuevo anuncio para un curso.
+     * @param idCurso ID del curso al que pertenece el anuncio.
+     * @param titulo Título informativo.
+     * @param contenido Cuerpo del anuncio.
+     * @param fechaPublicacion Fecha opcional (ISO yyyy-MM-dd).
+     * @param authentication Datos del docente que crea el anuncio.
+     */
     @PostMapping("/crear")
-    @PreAuthorize("hasAuthority('docente')")
+    @PreAuthorize("hasAuthority('docente')") // Restringe el acceso solo a docentes
     public ResponseEntity<?> crearAnuncio(
             @RequestParam Integer idCurso,
             @RequestParam String titulo,
@@ -37,6 +57,7 @@ public class AnuncioController {
             @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaPublicacion,
             Authentication authentication) {
         try {
+            // Se envía el nombre de usuario (email/dni) al servicio para auditoría o validación
             anuncioService.crearAnuncio(idCurso, titulo, contenido, fechaPublicacion, authentication.getName());
             return ResponseEntity.ok("Anuncio publicado con éxito");
         } catch (Exception e) {
@@ -44,14 +65,21 @@ public class AnuncioController {
         }
     }
 
+    /**
+     * Edita un anuncio existente.
+     * @param id ID del anuncio a modificar.
+     * @param titulo Nuevo título.
+     * @param contenido Nuevo contenido.
+     */
     @PutMapping("/editar/{id}")
-    @PreAuthorize("hasAuthority('docente')")
+    @PreAuthorize("hasAuthority('docente')") // Solo docentes pueden editar
     public ResponseEntity<?> editarAnuncio(
             @PathVariable Integer id,
             @RequestParam String titulo,
             @RequestParam String contenido,
             Authentication authentication) {
         try {
+            // El servicio debe validar que el docente sea el dueño del anuncio
             anuncioService.editarAnuncio(id, titulo, contenido, authentication.getName());
             return ResponseEntity.ok("Anuncio actualizado correctamente");
         } catch (Exception e) {
@@ -59,8 +87,12 @@ public class AnuncioController {
         }
     }
 
+    /**
+     * Elimina un anuncio del sistema.
+     * @param id ID del anuncio a eliminar.
+     */
     @DeleteMapping("/eliminar/{id}")
-    @PreAuthorize("hasAuthority('docente')")
+    @PreAuthorize("hasAuthority('docente')") // Solo docentes pueden eliminar
     public ResponseEntity<?> eliminarAnuncio(@PathVariable Integer id, Authentication authentication) {
         try {
             anuncioService.eliminarAnuncio(id, authentication.getName());
