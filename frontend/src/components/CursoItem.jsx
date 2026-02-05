@@ -10,7 +10,7 @@ import {
   Image as ImageIcon,
 } from "lucide-react";
 import { useCursoItem } from "../hooks/useCursoItem";
-import CursoDetalle from "../pages/general/CursoDetalle";
+import CursoDetalle from "./CursoDetalle";
 import CursoAdmin from "../pages/admin/CursoAdmin";
 import MatriculaAdmin from "../pages/admin/MatriculaAdmin";
 import Avatar from './common/Avatar';

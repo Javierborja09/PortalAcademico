@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { X, Send, Calendar } from 'lucide-react';
 import { crearAnuncio, editarAnuncio } from '../services/anuncioService';
 
-const Anuncio = ({ idCurso, onClose, onSuccess, anuncioAEditar }) => {
+const AnuncioAdmin = ({ idCurso, onClose, onSuccess, anuncioAEditar }) => {
     const isEditing = !!anuncioAEditar;
     
     const [form, setForm] = useState({
@@ -105,4 +105,4 @@ const Anuncio = ({ idCurso, onClose, onSuccess, anuncioAEditar }) => {
     );
 };
 
-export default Anuncio;
+export default AnuncioAdmin;
