@@ -3,7 +3,7 @@ package com.cibertec.portal_academico.dto;
 import lombok.Data;
 
 @Data
-public class MensajeChat {
+public class MensajeChatDTO {
     private String contenido;
     private String remitente;
     private String tipo;     // "CHAT", "JOIN", "LEAVE", "START_SESSION", etc.

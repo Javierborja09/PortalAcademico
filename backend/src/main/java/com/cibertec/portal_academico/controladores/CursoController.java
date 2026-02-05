@@ -1,26 +1,16 @@
 package com.cibertec.portal_academico.controladores;
 
 import com.cibertec.portal_academico.models.Curso;
-import com.cibertec.portal_academico.models.Usuario;
-import com.cibertec.portal_academico.repositorios.CursoRepository;
-import com.cibertec.portal_academico.repositorios.UsuarioRepository;
+import com.cibertec.portal_academico.servicios.CursoService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.core.context.SecurityContextHolder;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
-import javax.imageio.ImageIO;
-import java.awt.image.BufferedImage;
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.*;
-import java.time.LocalDate;
+
 import java.util.HashMap;
-import java.util.List;
 import java.util.Map;
-import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/cursos")
@@ -28,24 +18,16 @@ import java.util.Optional;
 public class CursoController {
 
     @Autowired
-    private CursoRepository cursoRepository;
+    private CursoService cursoService;
 
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Value("${upload.path.courses}")
-    private String uploadDir;
-
-    // 1. LISTAR TODO (Solo para Admin)
     @GetMapping("/listar")
     @PreAuthorize("hasAuthority('admin')")
-    public List<Curso> listarTodos() {
-        return cursoRepository.findAll();
+    public ResponseEntity<?> listarTodos() {
+        return ResponseEntity.ok(cursoService.listarTodos());
     }
 
-    // 2. CREAR CURSO
     @PostMapping("/crear")
-    @PreAuthorize("hasAuthority('admin')") 
+    @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<?> crearCurso(
             @RequestParam("nombreCurso") String nombre,
             @RequestParam("codigoCurso") String codigo,
@@ -53,35 +35,20 @@ public class CursoController {
             @RequestParam("fechaFin") String fechaFin,
             @RequestParam("idDocente") Integer idDocente,
             @RequestParam(value = "imagen", required = false) MultipartFile imagen) {
-
-        Optional<Usuario> docenteOpt = usuarioRepository.findById(idDocente);
-        if (docenteOpt.isEmpty()) return ResponseEntity.badRequest().body("Error: Docente no encontrado.");
-
-        Curso curso = new Curso();
-        curso.setNombreCurso(nombre);
-        curso.setCodigoCurso(codigo);
-        curso.setFechaInicio(LocalDate.parse(fechaInicio));
-        curso.setFechaFin(LocalDate.parse(fechaFin));
-        curso.setDocente(docenteOpt.get());
-
-        // Manejo dinámico de carpetas
-        String folderName = Paths.get(uploadDir).getFileName().toString();
-        curso.setImagenPortada((imagen != null && !imagen.isEmpty())
-                ? guardarImagenWebP(imagen)
-                : "/" + folderName + "/default_course.png");
-
-        cursoRepository.save(curso);
-        
-        // Respuesta estructurada para evitar errores de serialización en React
-        Map<String, Object> respuesta = new HashMap<>();
-        respuesta.put("mensaje", "Curso creado con éxito");
-        respuesta.put("imagen", curso.getImagenPortada());
-        return ResponseEntity.ok(respuesta);
+        try {
+            Curso curso = cursoService.crearCurso(nombre, codigo, fechaInicio, fechaFin, idDocente, imagen);
+            
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("mensaje", "Curso creado con éxito");
+            respuesta.put("imagen", curso.getImagenPortada());
+            return ResponseEntity.ok(respuesta);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
     }
 
-    // 3. EDITAR CURSO
     @PutMapping("/editar/{id}")
-    @PreAuthorize("hasAuthority('admin')") 
+    @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<?> editarCurso(
             @PathVariable Integer id,
             @RequestParam(value = "nombreCurso", required = false) String nombre,
@@ -90,121 +57,58 @@ public class CursoController {
             @RequestParam(value = "fechaFin", required = false) String fechaFin,
             @RequestParam(value = "idDocente", required = false) Integer idDocente,
             @RequestParam(value = "imagen", required = false) MultipartFile imagen) {
-
-        Curso curso = cursoRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Curso no encontrado"));
-
-        if (nombre != null) curso.setNombreCurso(nombre);
-        if (codigo != null) curso.setCodigoCurso(codigo);
-        if (fechaInicio != null) curso.setFechaInicio(LocalDate.parse(fechaInicio));
-        if (fechaFin != null) curso.setFechaFin(LocalDate.parse(fechaFin));
-        
-        if (idDocente != null) {
-            usuarioRepository.findById(idDocente).ifPresent(curso::setDocente);
+        try {
+            Curso curso = cursoService.editarCurso(id, nombre, codigo, fechaInicio, fechaFin, idDocente, imagen);
+            
+            Map<String, Object> respuesta = new HashMap<>();
+            respuesta.put("mensaje", "Curso actualizado correctamente");
+            respuesta.put("imagen", curso.getImagenPortada());
+            return ResponseEntity.ok(respuesta);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
-
-        // Actualización de imagen física y lógica
-        if (imagen != null && !imagen.isEmpty()) {
-            eliminarArchivoFisico(curso.getImagenPortada());
-            curso.setImagenPortada(guardarImagenWebP(imagen));
-        }
-
-        cursoRepository.save(curso);
-
-        // Devolvemos Map para asegurar que React reciba la nueva URL de imagen
-        Map<String, Object> respuesta = new HashMap<>();
-        respuesta.put("mensaje", "Curso actualizado correctamente");
-        respuesta.put("imagen", curso.getImagenPortada());
-        
-        return ResponseEntity.ok(respuesta);
     }
 
-    // 4. ELIMINAR CURSO
     @DeleteMapping("/eliminar/{id}")
-    @PreAuthorize("hasAuthority('admin')") 
+    @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<?> eliminarCurso(@PathVariable Integer id) {
-        cursoRepository.findById(id).ifPresent(c -> {
-            eliminarArchivoFisico(c.getImagenPortada());
-            cursoRepository.deleteById(id);
-        });
-        return ResponseEntity.ok("Curso eliminado");
+        try {
+            cursoService.eliminarCurso(id);
+            return ResponseEntity.ok("Curso eliminado");
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
+        }
     }
 
-    // 5. LISTADOS ESPECÍFICOS
     @GetMapping("/docente/{idDocente}")
-    @PreAuthorize("hasAnyAuthority('docente', 'admin')") 
-    public List<Curso> listarPorDocente(@PathVariable Integer idDocente) {
-        return cursoRepository.findByDocenteId(idDocente);
+    @PreAuthorize("hasAnyAuthority('docente', 'admin')")
+    public ResponseEntity<?> listarPorDocente(@PathVariable Integer idDocente) {
+        return ResponseEntity.ok(cursoService.listarPorDocente(idDocente));
     }
 
     @GetMapping("/alumno/{idAlumno}")
     @PreAuthorize("hasAnyAuthority('alumno', 'admin')")
-    public List<Curso> listarPorAlumno(@PathVariable Integer idAlumno) {
-        return cursoRepository.findCursosByAlumnoId(idAlumno);
+    public ResponseEntity<?> listarPorAlumno(@PathVariable Integer idAlumno) {
+        return ResponseEntity.ok(cursoService.listarPorAlumno(idAlumno));
     }
 
-    // --- PROCESAMIENTO DE IMÁGENES ---
-
-    private String guardarImagenWebP(MultipartFile foto) {
+    @GetMapping("/{id}")
+    @PreAuthorize("isAuthenticated()")
+    public ResponseEntity<?> obtenerPorId(@PathVariable Integer id, Authentication authentication) {
         try {
-            String nombreArchivoWebp = System.currentTimeMillis() + "_curso.webp";
-            Path rutaPath = Paths.get(uploadDir).toAbsolutePath();
+            Curso curso = cursoService.obtenerPorId(id);
             
-            if (!Files.exists(rutaPath)) Files.createDirectories(rutaPath);
+            String email = authentication.getName();
+            String rol = authentication.getAuthorities().iterator().next()
+                    .getAuthority().toLowerCase();
 
-            BufferedImage imagenOriginal = ImageIO.read(foto.getInputStream());
-            File archivoDestino = rutaPath.resolve(nombreArchivoWebp).toFile();
-
-            if (!ImageIO.write(imagenOriginal, "webp", archivoDestino)) {
-                ImageIO.write(imagenOriginal, "png", archivoDestino);
+            if (!cursoService.tieneAcceso(id, email, rol)) {
+                return ResponseEntity.status(403).body("Acceso denegado: No perteneces a este curso.");
             }
 
-            return "/" + rutaPath.getFileName().toString() + "/" + nombreArchivoWebp;
-        } catch (IOException e) {
-            throw new RuntimeException("Error al procesar portada: " + e.getMessage());
+            return ResponseEntity.ok(curso);
+        } catch (Exception e) {
+            return ResponseEntity.badRequest().body("Error: " + e.getMessage());
         }
     }
-
-    private void eliminarArchivoFisico(String rutaLogica) {
-        if (rutaLogica == null || rutaLogica.toLowerCase().contains("default")) return;
-        try {
-            String nombreArchivo = rutaLogica.substring(rutaLogica.lastIndexOf("/") + 1);
-            Path rutaCompleta = Paths.get(uploadDir).toAbsolutePath().resolve(nombreArchivo);
-            Files.deleteIfExists(rutaCompleta);
-        } catch (IOException e) {
-            System.err.println("Error al borrar archivo: " + e.getMessage());
-        }
-    }
-
-    // 6. OBTENER CURSO POR ID 
-@GetMapping("/{id}")
-@PreAuthorize("isAuthenticated()") 
-public ResponseEntity<?> obtenerPorId(@PathVariable Integer id) {
-    // 1. Verificar existencia
-    Curso curso = cursoRepository.findById(id)
-            .orElseThrow(() -> new RuntimeException("Curso no encontrado"));
-
-    // 2. Datos del Token
-    String emailActual = SecurityContextHolder.getContext().getAuthentication().getName();
-    String rol = SecurityContextHolder.getContext().getAuthentication()
-                                     .getAuthorities().iterator().next()
-                                     .getAuthority().toLowerCase();
-
-    // 3. Verificación de permisos (IDOR Protection)
-    boolean accesoPermitido = false;
-
-    if (rol.equals("admin")) {
-        accesoPermitido = true;
-    } else if (rol.equals("docente")) {
-        accesoPermitido = cursoRepository.existsByCursoIdAndDocenteEmail(id, emailActual);
-    } else if (rol.equals("alumno")) {
-        accesoPermitido = cursoRepository.existsByCursoIdAndAlumnoEmail(id, emailActual);
-    }
-
-    if (!accesoPermitido) {
-        return ResponseEntity.status(403).body("Acceso denegado: No perteneces a este curso.");
-    }
-
-    return ResponseEntity.ok(curso);
-}
 }

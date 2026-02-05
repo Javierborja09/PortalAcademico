@@ -2,10 +2,7 @@ package com.cibertec.portal_academico.controladores;
 
 import com.cibertec.portal_academico.models.Curso;
 import com.cibertec.portal_academico.models.Matricula;
-import com.cibertec.portal_academico.models.Usuario;
-import com.cibertec.portal_academico.repositorios.CursoRepository;
-import com.cibertec.portal_academico.repositorios.MatriculaRepository;
-import com.cibertec.portal_academico.repositorios.UsuarioRepository;
+import com.cibertec.portal_academico.servicios.MatriculaService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -22,24 +19,13 @@ import java.util.stream.Collectors;
 public class MatriculaController {
 
     @Autowired
-    private MatriculaRepository matriculaRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
-
-    @Autowired
-    private CursoRepository cursoRepository;
+    private MatriculaService matriculaService;
 
     // 1. LISTAR CURSOS DE UN ALUMNO ESPECÍFICO
     @GetMapping("/alumno/{idAlumno}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Curso>> listarCursosPorAlumno(@PathVariable Integer idAlumno) {
-        List<Matricula> matriculas = matriculaRepository.findByAlumnoId(idAlumno);
-
-        List<Curso> cursos = matriculas.stream()
-                .map(Matricula::getCurso)
-                .collect(Collectors.toList());
-
+        List<Curso> cursos = matriculaService.listarCursosPorAlumno(idAlumno);
         return ResponseEntity.ok(cursos);
     }
 
@@ -52,20 +38,10 @@ public class MatriculaController {
             Integer idCurso = (Integer) payload.get("idCurso");
             String ciclo = (String) payload.get("ciclo");
 
-            Usuario alumno = usuarioRepository.findById(idAlumno)
-                    .orElseThrow(() -> new RuntimeException("Alumno no encontrado"));
-
-            Curso curso = cursoRepository.findById(idCurso)
-                    .orElseThrow(() -> new RuntimeException("Curso no encontrado"));
-            Matricula nuevaMatricula = new Matricula();
-            nuevaMatricula.setAlumno(alumno);
-            nuevaMatricula.setCurso(curso);
-            nuevaMatricula.setCiclo(ciclo != null ? ciclo : "2026-I");
-
-            matriculaRepository.save(nuevaMatricula);
+            Matricula matricula = matriculaService.matricularAlumno(idAlumno, idCurso, ciclo);
 
             Map<String, String> response = new HashMap<>();
-            response.put("mensaje", "Alumno matriculado exitosamente en " + curso.getNombreCurso());
+            response.put("mensaje", "Alumno matriculado exitosamente en " + matricula.getCurso().getNombreCurso());
 
             return ResponseEntity.ok(response);
 
@@ -79,11 +55,7 @@ public class MatriculaController {
     @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<?> eliminarMatricula(@PathVariable Integer id) {
         try {
-            if (!matriculaRepository.existsById(id)) {
-                return ResponseEntity.status(404).body("Registro de matrícula no encontrado.");
-            }
-
-            matriculaRepository.deleteById(id);
+            matriculaService.eliminarMatricula(id);
 
             Map<String, String> response = new HashMap<>();
             response.put("mensaje", "El alumno ha sido retirado del curso correctamente.");
@@ -98,7 +70,7 @@ public class MatriculaController {
     @GetMapping("/curso/{idCurso}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> listarAlumnosPorCurso(@PathVariable Integer idCurso) {
-        List<Matricula> matriculas = matriculaRepository.findByCursoId(idCurso);
+        List<Matricula> matriculas = matriculaService.listarMatriculasPorCurso(idCurso);
 
         // Creamos una lista de mapas (objetos JSON personalizados)
         List<Map<String, Object>> respuesta = matriculas.stream().map(m -> {

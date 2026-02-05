@@ -10,6 +10,11 @@ import java.util.List;
 @Repository
 public interface HorarioRepository extends JpaRepository<Horario, Integer> {
     
-    @Query("SELECT h FROM Horario h WHERE h.curso.id_curso = :idCurso ORDER BY h.horaInicio ASC")
+    // Usamos JOIN FETCH para traer los datos del curso de una vez. 
+    // Si Horario tiene relación con 'Aula', también deberías agregarle un JOIN FETCH h.aula
+    @Query("SELECT h FROM Horario h " +
+           "JOIN FETCH h.curso " + 
+           "WHERE h.curso.id_curso = :idCurso " +
+           "ORDER BY h.diaSemana ASC, h.horaInicio ASC")
     List<Horario> findByCursoId(@Param("idCurso") Integer idCurso);
 }

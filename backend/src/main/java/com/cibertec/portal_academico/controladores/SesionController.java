@@ -1,101 +1,60 @@
 package com.cibertec.portal_academico.controladores;
 
-import com.cibertec.portal_academico.dto.MensajeChat;
+import com.cibertec.portal_academico.dto.MensajeChatDTO;
+import com.cibertec.portal_academico.servicios.SesionService;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.messaging.handler.annotation.DestinationVariable;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.messaging.handler.annotation.SendTo;
 import org.springframework.stereotype.Controller;
 
-import java.util.*;
-import java.util.concurrent.ConcurrentHashMap;
+import java.util.Map;
 
 @Controller
 public class SesionController {
 
-    private static final Map<Integer, Boolean> sesionesActivas = new ConcurrentHashMap<>();
-    private static final Map<Integer, Map<String, String>> participantesPorCurso = new ConcurrentHashMap<>();
-
-    // Historial en la RAM del servidor
-    private static final Map<Integer, List<MensajeChat>> historialMensajes = new ConcurrentHashMap<>();
+    @Autowired
+    private SesionService sesionService;
 
     @MessageMapping("/sesion.enviar/{cursoId}")
     @SendTo("/topic/curso/{cursoId}")
-    public MensajeChat procesarMensaje(@DestinationVariable Integer cursoId, MensajeChat mensaje) {
-        mensaje.setCursoId(cursoId);
+    public MensajeChatDTO procesarMensaje(@DestinationVariable Integer cursoId, MensajeChatDTO mensaje) {
+        return sesionService.procesarMensaje(cursoId, mensaje);
+    }
 
-        String tipo = mensaje.getTipo();
-        String remitente = mensaje.getRemitente();
-        String rol = mensaje.getRol() != null ? mensaje.getRol() : "alumno";
-
-        if ("CHAT".equals(tipo)) {
-            historialMensajes.computeIfAbsent(cursoId, k -> Collections.synchronizedList(new ArrayList<>()))
-                    .add(mensaje);
-        } else if ("JOIN".equals(tipo)) {
-            participantesPorCurso.computeIfAbsent(cursoId, k -> new ConcurrentHashMap<>())
-                    .put(remitente, rol);
-        } else if ("LEAVE".equals(tipo)) {
-            if (participantesPorCurso.containsKey(cursoId)) {
-                participantesPorCurso.get(cursoId).remove(remitente);
-            }
-        }
+    @MessageMapping("/sesion.iniciar/{cursoId}")
+    @SendTo("/topic/curso/{cursoId}")
+    public MensajeChatDTO iniciarSesion(@DestinationVariable Integer cursoId, MensajeChatDTO mensaje) {
+        sesionService.iniciarSesion(cursoId);
+        mensaje.setTipo("START_SESSION");
         return mensaje;
-    }
-
-    @MessageMapping("/sesion.historial/{cursoId}")
-    @SendTo("/topic/curso/{cursoId}")
-    public Map<String, Object> obtenerHistorial(@DestinationVariable Integer cursoId) {
-        Map<String, Object> respuesta = new HashMap<>();
-        List<MensajeChat> historial = historialMensajes.getOrDefault(cursoId, new ArrayList<>());
-        boolean activa = sesionesActivas.getOrDefault(cursoId, false);
-
-        respuesta.put("tipo", "CHAT_HISTORY");
-        respuesta.put("lista", historial);
-        respuesta.put("sesionActiva", activa);
-        return respuesta;
-    }
-
-    @MessageMapping("/sesion.participantes/{cursoId}")
-    @SendTo("/topic/curso/{cursoId}")
-    public Map<String, Object> obtenerParticipantes(@DestinationVariable Integer cursoId) {
-        Map<String, Object> respuesta = new HashMap<>();
-        Map<String, String> lista = participantesPorCurso.getOrDefault(cursoId, new HashMap<>());
-
-        List<Map<String, String>> listaFormateada = new ArrayList<>();
-        lista.forEach((nombre, rol) -> {
-            Map<String, String> p = new HashMap<>();
-            p.put("nombre", nombre);
-            p.put("rol", rol);
-            listaFormateada.add(p);
-        });
-
-        respuesta.put("tipo", "PARTICIPANTS_LIST");
-        respuesta.put("lista", listaFormateada);
-        return respuesta;
     }
 
     @MessageMapping("/sesion.finalizar/{cursoId}")
     @SendTo("/topic/curso/{cursoId}")
-    public MensajeChat finalizarSesion(@DestinationVariable Integer cursoId, MensajeChat mensaje) {
-        sesionesActivas.remove(cursoId);
-        participantesPorCurso.remove(cursoId);
-        historialMensajes.remove(cursoId); 
+    public MensajeChatDTO finalizarSesion(@DestinationVariable Integer cursoId, MensajeChatDTO mensaje) {
+        sesionService.finalizarSesion(cursoId);
         mensaje.setTipo("END_SESSION");
         return mensaje;
     }
 
     @MessageMapping("/sesion.verificar/{cursoId}")
     @SendTo("/topic/curso/{cursoId}")
-    public MensajeChat verificarEstadoSesion(@DestinationVariable Integer cursoId) {
-        MensajeChat respuesta = new MensajeChat();
-        respuesta.setTipo(sesionesActivas.getOrDefault(cursoId, false) ? "SESSION_IS_ACTIVE" : "SESSION_IS_INACTIVE");
+    public MensajeChatDTO verificarEstadoSesion(@DestinationVariable Integer cursoId) {
+        MensajeChatDTO respuesta = new MensajeChatDTO();
+        respuesta.setTipo(sesionService.estaActiva(cursoId) ? "SESSION_IS_ACTIVE" : "SESSION_IS_INACTIVE");
         return respuesta;
     }
 
-    @MessageMapping("/sesion.iniciar/{cursoId}")
+    @MessageMapping("/sesion.historial/{cursoId}")
     @SendTo("/topic/curso/{cursoId}")
-    public MensajeChat iniciarSesion(@DestinationVariable Integer cursoId, MensajeChat mensaje) {
-        sesionesActivas.put(cursoId, true);
-        mensaje.setTipo("START_SESSION");
-        return mensaje;
+    public Map<String, Object> obtenerHistorial(@DestinationVariable Integer cursoId) {
+        return sesionService.obtenerHistorial(cursoId);
+    }
+
+    @MessageMapping("/sesion.participantes/{cursoId}")
+    @SendTo("/topic/curso/{cursoId}")
+    public Map<String, Object> obtenerParticipantes(@DestinationVariable Integer cursoId) {
+        return sesionService.obtenerParticipantes(cursoId);
     }
 }
