@@ -4,8 +4,8 @@ import {
     MessageSquare, User, ShieldCheck, CheckCircle2, Loader2, X 
 } from 'lucide-react';
 import { useAulaSesion } from '@/hooks/useAulaSesion';
-import ChatAula from '@/components/ChatAula';
-import AulaSesionParticipantes from '@/components/AulaSesionParticipantes';
+import ChatAula from '@/components/aula/ChatAula';
+import AulaSesionParticipantes from '@/components/aula/AulaSesionParticipantes';
 
 const AulaSesion = () => {
     const {

@@ -2,10 +2,7 @@ import React from 'react';
 import { Clock, MapPin } from 'lucide-react';
 
 const HorarioCard = ({ horario }) => {
-    // Extraemos las dos primeras letras para el icono visual (ej: "LU", "MA")
     const inicialesDia = horario.diaSemana.substring(0, 2).toUpperCase();
-
-    // Formateamos las horas para quitar los segundos si vienen de la BD (ej: 08:00:00 -> 08:00)
     const formatoHora = (hora) => hora.substring(0, 5);
 
     return (

@@ -21,7 +21,6 @@ public class MatriculaController {
     @Autowired
     private MatriculaService matriculaService;
 
-    // 1. LISTAR CURSOS DE UN ALUMNO ESPECÍFICO
     @GetMapping("/alumno/{idAlumno}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<List<Curso>> listarCursosPorAlumno(@PathVariable Integer idAlumno) {
@@ -29,7 +28,6 @@ public class MatriculaController {
         return ResponseEntity.ok(cursos);
     }
 
-    // 2. REGISTRAR NUEVA MATRÍCULA (INSCRIBIR)
     @PostMapping("/registrar")
     @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<?> matricularAlumno(@RequestBody Map<String, Object> payload) {
@@ -50,7 +48,7 @@ public class MatriculaController {
         }
     }
 
-    // 3. ELIMINAR MATRÍCULA (RETIRAR ALUMNO)
+
     @DeleteMapping("/eliminar/{id}")
     @PreAuthorize("hasAuthority('admin')")
     public ResponseEntity<?> eliminarMatricula(@PathVariable Integer id) {
@@ -66,13 +64,12 @@ public class MatriculaController {
         }
     }
 
-    // 4. LISTAR TODOS LOS ALUMNOS DE UN CURSO
+
     @GetMapping("/curso/{idCurso}")
     @PreAuthorize("isAuthenticated()")
     public ResponseEntity<?> listarAlumnosPorCurso(@PathVariable Integer idCurso) {
         List<Matricula> matriculas = matriculaService.listarMatriculasPorCurso(idCurso);
 
-        // Creamos una lista de mapas (objetos JSON personalizados)
         List<Map<String, Object>> respuesta = matriculas.stream().map(m -> {
             Map<String, Object> datos = new HashMap<>();
             datos.put("id_matricula", m.getId_matricula());

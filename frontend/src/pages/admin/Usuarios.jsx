@@ -1,7 +1,7 @@
 import React from 'react';
 import { useUsuarios } from '@/hooks/useUsuarios';
-import UsuarioItem from '@/components/UsuarioItem';
-import UsuarioAdmin from '@/components/UsuarioAdmin';
+import UsuarioItem from '@/components/usuario/UsuarioItem';
+import UsuarioAdmin from '@/components/usuario/UsuarioAdmin';
 import { Search, UserPlus, Loader2, Users } from 'lucide-react';
 
 const Usuarios = () => {

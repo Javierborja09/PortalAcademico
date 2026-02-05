@@ -4,9 +4,9 @@ import {
     GraduationCap, BookOpen, Video, Play, ExternalLink, ShieldAlert
 } from 'lucide-react';
 import { useAulaVirtual } from '@/hooks/useAulaVirtual';
-import AulaBanner from '@/components/AulaBanner';
-import AulaIntegrantes from '@/components/AulaIntegrantes';
-import AulaDetalle from '@/components/AulaDetalle';
+import AulaBanner from '@/components/aula/AulaBanner';
+import AulaIntegrantes from '@/components/aula/AulaIntegrantes';
+import AulaDetalle from '@/components/aula/AulaDetalle';
 import Avatar from '@/components/common/Avatar';
 
 const AulaVirtual = () => {
