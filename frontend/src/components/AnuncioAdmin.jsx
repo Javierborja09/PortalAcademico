@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { X, Send, Calendar } from 'lucide-react';
-import { crearAnuncio, editarAnuncio } from '../../services/anuncioService';
+import { crearAnuncio, editarAnuncio } from '../services/anuncioService';
 
-const AnuncioForm = ({ idCurso, onClose, onSuccess, anuncioAEditar }) => {
+const Anuncio = ({ idCurso, onClose, onSuccess, anuncioAEditar }) => {
     const isEditing = !!anuncioAEditar;
     
     const [form, setForm] = useState({
@@ -18,10 +18,8 @@ const AnuncioForm = ({ idCurso, onClose, onSuccess, anuncioAEditar }) => {
         setLoading(true);
         try {
             if (isEditing) {
-                // Llamamos al servicio de EDITAR
                 await editarAnuncio(anuncioAEditar.id_anuncio, form);
             } else {
-                // Llamamos al servicio de CREAR
                 await crearAnuncio({ ...form, idCurso });
             }
             onSuccess();
@@ -107,4 +105,4 @@ const AnuncioForm = ({ idCurso, onClose, onSuccess, anuncioAEditar }) => {
     );
 };
 
-export default AnuncioForm;
+export default Anuncio;
