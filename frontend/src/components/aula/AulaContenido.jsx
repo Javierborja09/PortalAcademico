@@ -7,7 +7,7 @@ import {
 import { useAulaContenido } from '@/hooks/useAulaContenido';
 import FilePreviewModal from './FilePreviewModal'; 
 
-const AulaContenido = ({ idCurso, rol, onEditUnidad, onEditTema, onCreateUnidad, onCreateTema, onDelete, onUploadFile }) => {
+const AulaContenido = ({ idCurso, rol, onEditUnidad, onEditTema, onDelete, onUploadFile }) => {
     const { 
         unidades, 
         loading, 

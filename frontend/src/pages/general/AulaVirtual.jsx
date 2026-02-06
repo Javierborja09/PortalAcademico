@@ -5,13 +5,11 @@ import {
   Info,
   ArrowLeft,
   Loader2,
-  GraduationCap,
   BookOpen,
   Video,
   Play,
   ExternalLink,
   ShieldAlert,
-  Plus
 } from "lucide-react";
 import { useAulaVirtual } from "@/hooks/useAulaVirtual";
 import AulaBanner from "@/components/aula/AulaBanner";
@@ -21,6 +19,7 @@ import AulaContenido from "@/components/aula/AulaContenido";
 import AulaContenidoAdmin from "@/components/aula/AulaContenidoAdmin";
 import ContenidoService from "@/services/contenidoService";
 import Avatar from "@/components/common/Avatar";
+import { useContenidoAdmin } from "@/hooks/useContenidoAdmin";
 
 const AulaVirtual = () => {
   const {
@@ -37,8 +36,14 @@ const AulaVirtual = () => {
 
   const [unidades, setUnidades] = useState([]);
   const [loadingContenido, setLoadingContenido] = useState(true);
+  const {
+    handleDelete,
+    openUploadModal,
+    openUnidadModal,
+    openTemaModal,
+    onRefresh,
+  } = useContenidoAdmin(curso?.id_curso, () => cargarContenido());
 
-  // Cargar contenido cada vez que el curso esté disponible
   useEffect(() => {
     if (curso?.id_curso) {
       cargarContenido();
@@ -57,7 +62,6 @@ const AulaVirtual = () => {
     }
   };
 
-  // Pantalla de Error de Acceso
   if (errorAcceso)
     return (
       <div className="min-h-[80vh] flex items-center justify-center p-4 w-full">
@@ -83,21 +87,19 @@ const AulaVirtual = () => {
         </div>
       </div>
     );
-
-  // Estado de Carga Inicial
   if (loadingHook)
     return (
-      <div className="h-[80vh] w-full flex flex-col items-center justify-center gap-4 text-blue-600">
+      <div className="h-screen w-full flex flex-col items-center justify-center gap-4 text-blue-600 bg-white">
         <Loader2 className="w-10 h-10 animate-spin" />
         <p className="font-black uppercase tracking-widest text-[10px]">
-          Cargando Aula Virtual...
+          Iniciando entorno virtual...
         </p>
       </div>
     );
 
   return (
-    <div className="animate-fadeIn pb-20 w-full max-w-7xl mx-auto px-4 md:px-8">
-      {/* Cabecera de Navegación */}
+    <div className="animate-fadeIn pb-20 w-full max-w-7xl mx-auto px-4 md:px-8 relative">
+      {/* Botón Volver */}
       <div className="flex items-center justify-between mb-8 pt-4">
         <button
           onClick={handleBack}
@@ -112,137 +114,125 @@ const AulaVirtual = () => {
 
       <AulaBanner curso={curso} />
 
-      {/* BANNER DINÁMICO DE SESIÓN EN VIVO */}
+      {/* BANNER SESIÓN VIVO */}
       <div
         className={`mb-10 rounded-[3rem] p-1 border shadow-2xl overflow-hidden relative transition-all duration-700 ${sesionActiva ? "bg-emerald-950 border-emerald-500/30" : "bg-slate-900 border-white/5"}`}
       >
         {sesionActiva && (
           <div className="absolute inset-0 bg-emerald-500/10 animate-pulse" />
         )}
-        <div className="relative p-10 flex flex-col md:flex-row items-center justify-between gap-8 text-white">
+        <div className="relative p-8 md:p-10 flex flex-col md:flex-row items-center justify-between gap-8 text-white">
           <div className="flex items-center gap-6">
             <div
-              className={`w-20 h-20 rounded-3xl flex items-center justify-center shadow-lg transition-all duration-500 ${sesionActiva ? "bg-emerald-500" : "bg-white/10"}`}
+              className={`w-16 h-16 md:w-20 md:h-20 rounded-3xl flex items-center justify-center shadow-lg ${sesionActiva ? "bg-emerald-500" : "bg-white/10"}`}
             >
               <Video size={36} />
             </div>
-            <div className="text-left">
-              <h2 className="text-2xl font-black uppercase tracking-tight">
+            <div>
+              <h2 className="text-xl md:text-2xl font-black uppercase tracking-tight">
                 {sesionActiva ? "¡Clase en vivo!" : "Videoconferencia"}
               </h2>
               <p
-                className={`text-[10px] font-bold uppercase tracking-widest mt-1 ${sesionActiva ? "text-emerald-400" : "text-slate-400"}`}
+                className={`text-[9px] font-bold uppercase tracking-widest mt-1 ${sesionActiva ? "text-emerald-400" : "text-slate-400"}`}
               >
                 {sesionActiva
-                  ? "Hay una sesión activa en este momento"
-                  : "Esperando a que el docente inicie la clase"}
+                  ? "Hay una sesión activa"
+                  : "Esperando inicio de clase"}
               </p>
             </div>
           </div>
-
           <button
             onClick={handleActionSesion}
             disabled={rol === "alumno" && !sesionActiva}
-            className={`px-8 py-5 rounded-2xl font-black uppercase text-xs tracking-widest transition-all flex items-center gap-3 shadow-xl ${
-              rol === "docente" || sesionActiva
-                ? "bg-blue-600 text-white hover:bg-blue-500 active:scale-95"
-                : "bg-white/5 text-white/20 cursor-not-allowed border border-white/5"
-            }`}
+            className={`px-8 py-4 md:py-5 rounded-2xl font-black uppercase text-[10px] tracking-widest transition-all flex items-center gap-3 ${rol === "docente" || sesionActiva ? "bg-blue-600 text-white hover:bg-blue-500" : "bg-white/5 text-white/20 cursor-not-allowed"}`}
           >
-            {rol === "docente" ? (
-              <>
-                {sesionActiva ? "Reingresar a Sesión" : "Iniciar Clase"}{" "}
-                <Play size={14} />
-              </>
-            ) : (
-              <>
-                {sesionActiva ? "Unirse ahora" : "Sesión Cerrada"}{" "}
-                <ExternalLink size={14} />
-              </>
-            )}
+            {rol === "docente"
+              ? sesionActiva
+                ? "Reingresar"
+                : "Iniciar Clase"
+              : sesionActiva
+                ? "Unirse ahora"
+                : "Cerrada"}{" "}
+            <Play size={14} />
           </button>
         </div>
       </div>
 
-      {/* GRID DE INFORMACIÓN DEL CURSO */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center gap-6 group hover:shadow-xl transition-all">
-          <div className="relative group/avatar">
-            <Avatar
-              src={curso?.docente?.foto_perfil}
-              type="perfil"
-              className="w-20 h-20 rounded-3xl border-none shadow-lg group-hover:scale-105"
-              alt="Foto del docente"
-            />
-            <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-blue-600 rounded-xl flex items-center justify-center text-white border-4 border-white shadow-md">
-              <User size={10} strokeWidth={3} />
-            </div>
-          </div>
-          <div className="flex-1 text-left">
-            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
+      {/* GRID INFORMACIÓN */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
+        <div className="bg-white p-6 md:p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center gap-6">
+          <Avatar
+            src={curso?.docente?.foto_perfil}
+            type="perfil"
+            className="w-16 h-16 md:w-20 md:h-20 rounded-3xl shadow-lg"
+          />
+          <div className="text-left">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
               Docente Titular
             </p>
-            <h3 className="text-xl font-black text-slate-800 uppercase leading-none">
+            <h3 className="text-lg md:text-xl font-black text-slate-800 uppercase leading-none">
               {curso?.docente
                 ? `${curso.docente.nombre} ${curso.docente.apellido}`
                 : "Sin asignar"}
             </h3>
             <button
               onClick={() => modals.info.set(true)}
-              className="mt-3 flex items-center gap-2 text-blue-600 font-bold text-xs hover:underline uppercase tracking-tighter"
+              className="mt-3 flex items-center gap-2 text-blue-600 font-bold text-[10px] hover:underline uppercase tracking-tighter"
             >
-              <Info size={12} /> Detalles Académicos
+              <Info size={12} /> Detalles
             </button>
           </div>
         </div>
 
         <button
           onClick={() => modals.users.set(true)}
-          className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center justify-between group hover:shadow-xl transition-all"
+          className="bg-white p-6 md:p-8 rounded-[2.5rem] border border-slate-100 flex items-center gap-6 hover:shadow-xl transition-all"
         >
-          <div className="flex items-center gap-6 text-left">
-            <div className="w-20 h-20 rounded-3xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
-              <Users size={32} />
-            </div>
-            <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">
-                Comunidad
-              </p>
-              <h3 className="text-xl font-black text-slate-800 uppercase leading-none">
-                Participantes
-              </h3>
-              <p className="text-blue-600 text-[10px] font-bold mt-1 uppercase">
-                {integrantes.length} Alumnos Inscritos
-              </p>
-            </div>
+          <div className="w-16 h-16 md:w-20 md:h-20 rounded-3xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
+            <Users size={32} />
+          </div>
+          <div className="text-left">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
+              Comunidad
+            </p>
+            <h3 className="text-lg md:text-xl font-black text-slate-800 uppercase leading-none">
+              Participantes
+            </h3>
+            <p className="text-blue-600 text-[9px] font-bold mt-1 uppercase">
+              {integrantes.length} Alumnos Inscritos
+            </p>
           </div>
         </button>
-
-        {/* SECCIÓN DE CONTENIDO DINÁMICO */}
-        <div className="lg:col-span-2 bg-white rounded-[3rem] border border-slate-100 p-10 min-h-[400px]">
-          {rol === "docente" ? (
-            <AulaContenidoAdmin 
-                idCurso={curso?.id_curso} 
-                unidades={unidades} 
-                onRefresh={cargarContenido} 
-            />
-          ) : (
-            <>
-              <div className="flex items-center justify-between mb-8">
-                <h2 className="text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
-                  <BookOpen className="text-blue-600" /> Repositorio de Materiales
-                </h2>
-              </div>
-              <AulaContenido 
-                  idCurso={curso?.id_curso} 
-                  unidades={unidades} 
-                  loading={loadingContenido}
-              />
-            </>
-          )}
-        </div>
       </div>
 
+      {/* SECCIÓN DE CONTENIDO (Aquí estaba el problema) */}
+      <div className="bg-white rounded-[3rem] border border-slate-100 p-6 md:p-10 shadow-sm relative overflow-visible">
+        {rol === "docente" ? (
+          <AulaContenidoAdmin
+            idCurso={curso?.id_curso}
+            unidades={unidades}
+            onRefresh={cargarContenido}
+          />
+        ) : (
+          <>
+            <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3 mb-8">
+              <BookOpen className="text-blue-600" /> Repositorio de Materiales
+            </h2>
+            <AulaContenido
+              idCurso={curso?.id_curso}
+              unidades={unidades}
+              rol={rol}
+              onDelete={handleDelete}
+              onUploadFile={openUploadModal}
+              onEditUnidad={openUnidadModal}
+              onEditTema={openTemaModal}
+              loading={loadingContenido}
+            />
+          </>
+        )}
+      </div>
+
+      {/* MODALES FLOTANTES */}
       <AulaIntegrantes
         isOpen={modals.users.isOpen}
         onClose={() => modals.users.set(false)}
