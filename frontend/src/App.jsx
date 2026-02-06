@@ -14,7 +14,7 @@ import MainLayout from './components/MainLayout';
 import RoleRoute from './components/RoleRoute'; 
 import AulaVirtual from './pages/general/AulaVirtual';
 import AulaSesion from './pages/general/AulaSesion';
-
+import Horario from './pages/general/Horario';
 function App() {
   return (
     <Router>
@@ -35,6 +35,7 @@ function App() {
             <Route path="/dashboard" element={<Dashboard />} />
             <Route path="/perfil" element={<Perfil />} />
             <Route path="/cursos" element={<Cursos />} /> 
+              <Route path="/horario" element={<Horario />} /> 
             <Route path="/aula-virtual/:id" element={<AulaVirtual />} />
             
             <Route element={<RoleRoute allowedRoles={['admin']} />}>

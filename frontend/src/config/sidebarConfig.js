@@ -10,6 +10,7 @@ export const MENU_ITEMS = [
       { to: "/dashboard", label: "Dashboard", icon: LayoutDashboard, roles: ["admin", "docente", "alumno"] },
       { to: "/cursos", label: "Mis Cursos", icon: BookOpen, roles: ["admin", "docente", "alumno"] },
       { to: "/perfil", label: "Mi Perfil", icon: User, roles: ["admin", "docente", "alumno"] },
+       { to: "/horario", label: "Mi Horario", icon: CalendarClock , roles: ["docente", "alumno"] },
     ]
   },
   {
