@@ -9,6 +9,7 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
+import com.cibertec.portal_academico.dto.AnuncioDTO;
 import com.cibertec.portal_academico.servicios.AnuncioService;
 
 /**
@@ -48,17 +49,11 @@ public class AnuncioController {
      * @param fechaPublicacion Fecha opcional (ISO yyyy-MM-dd).
      * @param authentication Datos del docente que crea el anuncio.
      */
-    @PostMapping("/crear")
-    @PreAuthorize("hasAuthority('docente')") // Restringe el acceso solo a docentes
-    public ResponseEntity<?> crearAnuncio(
-            @RequestParam Integer idCurso,
-            @RequestParam String titulo,
-            @RequestParam String contenido,
-            @RequestParam(required = false) @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate fechaPublicacion,
-            Authentication authentication) {
+   @PostMapping("/crear")
+    @PreAuthorize("hasAuthority('docente')")
+    public ResponseEntity<?> crearAnuncio(@RequestBody AnuncioDTO dto, Authentication auth) {
         try {
-            // Se envía el nombre de usuario (email/dni) al servicio para auditoría o validación
-            anuncioService.crearAnuncio(idCurso, titulo, contenido, fechaPublicacion, authentication.getName());
+            anuncioService.crearAnuncio(dto, auth.getName());
             return ResponseEntity.ok("Anuncio publicado con éxito");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());
@@ -72,15 +67,10 @@ public class AnuncioController {
      * @param contenido Nuevo contenido.
      */
     @PutMapping("/editar/{id}")
-    @PreAuthorize("hasAuthority('docente')") // Solo docentes pueden editar
-    public ResponseEntity<?> editarAnuncio(
-            @PathVariable Integer id,
-            @RequestParam String titulo,
-            @RequestParam String contenido,
-            Authentication authentication) {
+    @PreAuthorize("hasAuthority('docente')")
+    public ResponseEntity<?> editarAnuncio(@PathVariable Integer id, @RequestBody AnuncioDTO dto, Authentication auth) {
         try {
-            // El servicio debe validar que el docente sea el dueño del anuncio
-            anuncioService.editarAnuncio(id, titulo, contenido, authentication.getName());
+            anuncioService.editarAnuncio(id, dto, auth.getName());
             return ResponseEntity.ok("Anuncio actualizado correctamente");
         } catch (Exception e) {
             return ResponseEntity.badRequest().body("Error: " + e.getMessage());

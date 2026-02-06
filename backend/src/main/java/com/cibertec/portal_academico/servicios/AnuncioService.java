@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cibertec.portal_academico.dto.AnuncioDTO;
 import com.cibertec.portal_academico.models.Anuncio;
 import com.cibertec.portal_academico.models.Curso;
 import com.cibertec.portal_academico.models.Usuario;
@@ -31,23 +32,16 @@ public class AnuncioService {
     }
 
     @Transactional
-    public Anuncio crearAnuncio(Integer idCurso, String titulo, String contenido, 
-                                LocalDate fechaPublicacion, String correoAutor) {
-        
-        Usuario autor = usuarioRepository.findByCorreo(correoAutor)
-                .orElseThrow(() -> new RuntimeException("Usuario no encontrado"));
-
-        Curso curso = cursoRepository.findById(idCurso)
+    public Anuncio crearAnuncio(AnuncioDTO dto, String correoDocente) {
+        Curso curso = cursoRepository.findById(dto.getIdCurso())
                 .orElseThrow(() -> new RuntimeException("Curso no encontrado"));
 
-        // Validar que el docente sea el asignado al curso
-        if (!curso.getDocente().getId_usuario().equals(autor.getId_usuario())) {
-            throw new RuntimeException("No eres el docente asignado a este curso");
+        if (!curso.getDocente().getCorreo().equalsIgnoreCase(correoDocente)) {
+            throw new RuntimeException("No tienes permiso: no estás asignado a este curso.");
         }
 
-        // Lógica de fechas
         LocalDate hoy = LocalDate.now();
-        LocalDate fechaFinal = (fechaPublicacion != null) ? fechaPublicacion : hoy;
+        LocalDate fechaFinal = (dto.getFechaPublicacion() != null) ? dto.getFechaPublicacion() : hoy;
 
         if (fechaFinal.isAfter(hoy.plusDays(7))) {
             throw new RuntimeException("Solo se pueden programar anuncios hasta con 7 días de anticipación");
@@ -59,26 +53,26 @@ public class AnuncioService {
 
         Anuncio anuncio = new Anuncio();
         anuncio.setCurso(curso);
-        anuncio.setAutor(autor);
-        anuncio.setTitulo(titulo);
-        anuncio.setContenido(contenido);
+        anuncio.setAutor(curso.getDocente());
+        anuncio.setTitulo(dto.getTitulo());
+        anuncio.setContenido(dto.getContenido());
         anuncio.setFechaPublicacion(fechaFinal);
 
         return anuncioRepository.save(anuncio);
     }
 
     @Transactional
-    public Anuncio editarAnuncio(Integer id, String titulo, String contenido, String correoAutor) {
-        Anuncio anuncio = anuncioRepository.findById(id)
+    public Anuncio editarAnuncio(Integer idAnuncio, AnuncioDTO dto, String correoDocente) {
+        Anuncio anuncio = anuncioRepository.findById(idAnuncio)
                 .orElseThrow(() -> new RuntimeException("Anuncio no encontrado"));
 
-        if (!anuncio.getAutor().getCorreo().equals(correoAutor)) {
-            throw new RuntimeException("No tienes permiso para editar este anuncio");
+        if (!anuncio.getCurso().getDocente().getCorreo().equalsIgnoreCase(correoDocente)) {
+            throw new RuntimeException("No tienes permiso para editar anuncios de este curso.");
         }
 
-        anuncio.setTitulo(titulo);
-        anuncio.setContenido(contenido);
-        
+        anuncio.setTitulo(dto.getTitulo());
+        anuncio.setContenido(dto.getContenido());
+
         return anuncioRepository.save(anuncio);
     }
 
@@ -87,7 +81,7 @@ public class AnuncioService {
         Anuncio anuncio = anuncioRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Anuncio no encontrado"));
 
-        if (!anuncio.getAutor().getCorreo().equals(correoAutor)) {
+        if (!anuncio.getCurso().getDocente().getCorreo().equalsIgnoreCase(correoAutor)) {
             throw new RuntimeException("No tienes permiso para eliminar este anuncio");
         }
 

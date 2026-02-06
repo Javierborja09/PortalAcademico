@@ -6,16 +6,7 @@ export const getAnunciosByCurso = async (idCurso) => {
 };
 
 export const crearAnuncio = async (anuncioData) => {
-    const params = new URLSearchParams();
-    params.append('idCurso', anuncioData.idCurso);
-    params.append('titulo', anuncioData.titulo);
-    params.append('contenido', anuncioData.contenido);
-    
-    if (anuncioData.fechaPublicacion) {
-        params.append('fechaPublicacion', anuncioData.fechaPublicacion);
-    }
-
-    const response = await api.post('/anuncios/crear', params);
+    const response = await api.post('/anuncios/crear', anuncioData);
     return response.data;
 };
 
@@ -24,10 +15,7 @@ export const eliminarAnuncio = async (id) => {
     return response.data;
 };
 
-export const editarAnuncio = async (id, data) => {
-    const params = new URLSearchParams();
-    params.append('titulo', data.titulo);
-    params.append('contenido', data.contenido);
-    const response = await api.put(`/anuncios/editar/${id}`, params);
+export const editarAnuncio = async (id, anuncioData) => {
+    const response = await api.put(`/anuncios/editar/${id}`, anuncioData);
     return response.data;
 };
