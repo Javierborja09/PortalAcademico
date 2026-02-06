@@ -16,12 +16,18 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${upload.path.courses}")
     private String courseDir;
 
+    @Value("${upload.path.documents}")
+    private String documentDir;
+
+
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
         // Registro para Perfiles
         registrarRuta(registry, profileDir);
         // Registro para Cursos
         registrarRuta(registry, courseDir);
+        // Registro para Documentos
+        registrarRuta(registry, documentDir);
     }
 
     private void registrarRuta(ResourceHandlerRegistry registry, String dir) {

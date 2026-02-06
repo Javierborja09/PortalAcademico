@@ -31,25 +31,28 @@ public class SecurityConfig {
         http
                 .cors(cors -> cors.configurationSource(corsConfigurationSource()))
                 .csrf(csrf -> csrf.disable())
+                .headers(headers -> headers
+                        .frameOptions(frame -> frame.disable())
+                        .addHeaderWriter((request, response) -> {
+                            response.setHeader("X-Frame-Options", "ALLOW-FROM http://localhost:5173");
+                        }))
                 .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
                 .authorizeHttpRequests(auth -> auth
-                        // 1. Recursos Estáticos (Imágenes)
-                        .requestMatchers("/*/**.png", "/*/**.jpg", "/*/**.jpeg", "/*/**.webp").permitAll()
+                        // 1. Recursos Estáticos (Imágenes y Documentos)
+                        .requestMatchers("/*/**.png", "/*/**.jpg", "/*/**.jpeg", "/*/**.webp", "/*/**.pdf").permitAll()
+                        .requestMatchers("/documents/**").permitAll()
 
                         // 2. Autenticación
                         .requestMatchers("/api/auth/**").permitAll()
                         .requestMatchers("/ws-portal/**").permitAll()
-                        // 3. Cursos (Listar y ver detalles)
-                        // Permitimos GET a cualquier usuario autenticado (alumno, docente, admin)
+
+                        // 3. Cursos
                         .requestMatchers(HttpMethod.GET, "/api/cursos/**").hasAnyAuthority("admin", "docente", "alumno")
-                        // El registro y edición de cursos sí lo limitamos a admin
                         .requestMatchers(HttpMethod.POST, "/api/cursos/**").hasAuthority("admin")
                         .requestMatchers(HttpMethod.PUT, "/api/cursos/**").hasAuthority("admin")
 
-                        // 4. Matrículas (Aula Virtual)
-                        // Para ver integrantes y cursos del alumno
+                        // 4. Matrículas
                         .requestMatchers(HttpMethod.GET, "/api/matriculas/**").authenticated()
-                        // Para inscribir o retirar alumnos (solo admin)
                         .requestMatchers("/api/matriculas/registrar", "/api/matriculas/eliminar/**")
                         .hasAuthority("admin")
 
@@ -63,6 +66,12 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/anuncios/crear").hasAuthority("docente")
                         .requestMatchers(HttpMethod.PUT, "/api/anuncios/**").hasAuthority("docente")
                         .requestMatchers(HttpMethod.DELETE, "/api/anuncios/**").hasAuthority("docente")
+
+                        // 7. Contenido (Unidades, Temas y Documentos)
+                        .requestMatchers(HttpMethod.GET, "/api/contenido/**").authenticated()
+                        .requestMatchers(HttpMethod.POST, "/api/contenido/**").hasAnyAuthority("docente", "admin")
+                        .requestMatchers(HttpMethod.PUT, "/api/contenido/**").hasAnyAuthority("docente", "admin")
+                        .requestMatchers(HttpMethod.DELETE, "/api/contenido/**").hasAnyAuthority("docente", "admin")
 
                         // Cualquier otra petición requiere login
                         .anyRequest().authenticated())
@@ -79,20 +88,11 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration();
-
-        // 1. ORIGEN ESPECÍFICO: No uses "*". Pon la URL de tu Vite.
         config.setAllowedOrigins(Arrays.asList("http://localhost:5173"));
-
-        // 2. MÉTODOS PERMITIDOS
         config.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS"));
-
-        // 3. CABECERAS PERMITIDAS: Añadimos X-Requested-With que la usa SockJS
         config.setAllowedHeaders(Arrays.asList("Authorization", "Content-Type", "X-Requested-With"));
-
-        // 4. PERMITIR CREDENCIALES: Esto es lo que permite que el túnel de SockJS se
-        // abra
+        config.setExposedHeaders(Arrays.asList("X-Frame-Options"));
         config.setAllowCredentials(true);
-
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource();
         source.registerCorsConfiguration("/**", config);
         return source;
