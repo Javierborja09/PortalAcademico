@@ -1,16 +1,5 @@
 import React, { useState, useEffect } from "react";
-import {
-  User,
-  Users,
-  Info,
-  ArrowLeft,
-  Loader2,
-  BookOpen,
-  Video,
-  Play,
-  ExternalLink,
-  ShieldAlert,
-} from "lucide-react";
+import { ArrowLeft, Loader2, BookOpen } from "lucide-react";
 import { useAulaVirtual } from "@/hooks/useAulaVirtual";
 import AulaBanner from "@/components/aula/AulaBanner";
 import AulaBannerSesion from "@/components/aula/AulaBannerSesion";
@@ -20,10 +9,9 @@ import AulaDetalle from "@/components/aula/AulaDetalle";
 import AulaContenido from "@/components/aula/contenido/AulaContenido";
 import AulaContenidoAdmin from "@/components/aula/contenido/AulaContenidoAdmin";
 import ContenidoService from "@/services/contenidoService";
-import Avatar from "@/components/common/Avatar";
 import { useContenidoAdmin } from "@/hooks/useContenidoAdmin";
-
-// Importamos los nuevos componentes de modales
+import AulaAccesoRestringido from "@/components/aula/AulaAccesoRestringido";
+import AulaStats from "@/components/aula/AulaStats";
 import ContenidoModal from "@/components/aula/contenido/ContenidoModal";
 import FileUploadModal from "@/components/aula/contenido/FileUploadModal";
 
@@ -47,7 +35,6 @@ const AulaVirtual = () => {
 
   const openPreview = (file) => setPreview({ isOpen: true, file });
 
-  // Instanciamos el hook de administración aquí para centralizar los modales
   const {
     modal,
     form,
@@ -84,31 +71,7 @@ const AulaVirtual = () => {
     }
   };
 
-  if (errorAcceso)
-    return (
-      <div className="min-h-[80vh] flex items-center justify-center p-4 w-full">
-        <div className="bg-slate-950 w-full max-w-4xl rounded-[4rem] p-20 flex flex-col items-center justify-center shadow-2xl border border-white/5 animate-fadeIn">
-          <div className="p-8 bg-red-500/10 rounded-[3rem] border border-red-500/20 mb-8">
-            <ShieldAlert size={80} className="text-red-500" />
-          </div>
-          <div className="text-center space-y-4 mb-10">
-            <h1 className="text-4xl font-black uppercase text-white">
-              Acceso Restringido
-            </h1>
-            <p className="text-slate-400 font-bold text-sm uppercase tracking-widest max-w-md mx-auto leading-relaxed">
-              No estás matriculado en este curso o no tienes permisos de
-              docente.
-            </p>
-          </div>
-          <button
-            onClick={handleBack}
-            className="px-10 py-5 bg-white text-slate-950 rounded-2xl font-black uppercase text-xs tracking-widest hover:bg-red-500 hover:text-white transition-all"
-          >
-            Volver a mis cursos
-          </button>
-        </div>
-      </div>
-    );
+  if (errorAcceso) return <AulaAccesoRestringido onBack={handleBack} />;
 
   if (loadingHook)
     return (
@@ -143,52 +106,12 @@ const AulaVirtual = () => {
         rol={rol}
         handleActionSesion={handleActionSesion}
       />
-
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
-        <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center gap-6">
-          <Avatar
-            src={curso?.docente?.foto_perfil}
-            type="perfil"
-            className="w-20 h-20 rounded-3xl shadow-lg"
-          />
-          <div className="text-left">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
-              Docente Titular
-            </p>
-            <h3 className="text-xl font-black text-slate-800 uppercase leading-none">
-              {curso?.docente
-                ? `${curso.docente.nombre} ${curso.docente.apellido}`
-                : "Sin asignar"}
-            </h3>
-            <button
-              onClick={() => modals.info.set(true)}
-              className="mt-3 flex items-center gap-2 text-blue-600 font-bold text-[10px] hover:underline uppercase tracking-tighter"
-            >
-              <Info size={12} /> Detalles Académicos
-            </button>
-          </div>
-        </div>
-
-        <button
-          onClick={() => modals.users.set(true)}
-          className="bg-white p-8 rounded-[2.5rem] border border-slate-100 flex items-center gap-6 hover:shadow-xl transition-all"
-        >
-          <div className="w-20 h-20 rounded-3xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
-            <Users size={32} />
-          </div>
-          <div className="text-left">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
-              Comunidad
-            </p>
-            <h3 className="text-lg font-black text-slate-800 uppercase leading-none">
-              Participantes
-            </h3>
-            <p className="text-blue-600 text-[10px] font-bold mt-1 uppercase">
-              {integrantes.length} Alumnos Inscritos
-            </p>
-          </div>
-        </button>
-      </div>
+      <AulaStats
+        curso={curso}
+        integrantesCount={integrantes.length}
+        onOpenInfo={() => modals.info.set(true)}
+        onOpenUsers={() => modals.users.set(true)}
+      />
 
       {/* SECCIÓN DE CONTENIDO DINÁMICO */}
       <div className="bg-white rounded-[3rem] border border-slate-100 p-6 md:p-10 shadow-sm relative">
@@ -197,7 +120,6 @@ const AulaVirtual = () => {
             idCurso={curso?.id_curso}
             unidades={unidades}
             onRefresh={cargarContenido}
-            // Inyectamos las funciones del hook para que los botones abran los modales de aquí
             openUnidadModal={openUnidadModal}
             openTemaModal={openTemaModal}
             openUploadModal={openUploadModal}

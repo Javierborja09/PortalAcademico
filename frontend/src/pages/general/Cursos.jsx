@@ -1,7 +1,7 @@
 import React from "react";
 import { useCursos } from "@/hooks/useCursos";
 import CursoAdmin from "@/components/curso/CursoAdmin";
-import { BookOpen, Plus, BookX, GraduationCap, Search } from "lucide-react"; // Añadimos Search
+import { BookOpen, Plus, BookX, GraduationCap, Search } from "lucide-react"; 
 import CursoItem from "@/components/curso/CursoItem";
 
 const Cursos = () => {

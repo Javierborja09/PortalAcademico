@@ -3,7 +3,6 @@ import {
   MicOff,
   VideoOff,
   LogOut,
-  Settings,
   Users,
   MessageSquare,
   User,
