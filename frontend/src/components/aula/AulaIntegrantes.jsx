@@ -28,7 +28,10 @@ const AulaIntegrantes = ({ isOpen, onClose, integrantes }) => {
             onClick={onClose}
             className="p-3 bg-white/10 hover:bg-red-500/20 hover:text-red-400 rounded-2xl transition-all group"
           >
-            <X size={20} className="group-hover:rotate-90 transition-transform" />
+            <X
+              size={20}
+              className="group-hover:rotate-90 transition-transform"
+            />
           </button>
         </div>
 

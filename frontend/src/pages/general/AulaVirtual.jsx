@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { useAulaVirtual } from "@/hooks/useAulaVirtual";
 import AulaBanner from "@/components/aula/AulaBanner";
+import FilePreviewModal from "@/components/aula/contenido/FilePreviewModal";
 import AulaIntegrantes from "@/components/aula/AulaIntegrantes";
 import AulaDetalle from "@/components/aula/AulaDetalle";
 import AulaContenido from "@/components/aula/contenido/AulaContenido";
@@ -40,6 +41,10 @@ const AulaVirtual = () => {
 
   const [unidades, setUnidades] = useState([]);
   const [loadingContenido, setLoadingContenido] = useState(true);
+
+  const [preview, setPreview] = useState({ isOpen: false, file: null });
+
+  const openPreview = (file) => setPreview({ isOpen: true, file });
 
   // Instanciamos el hook de administración aquí para centralizar los modales
   const {
@@ -86,9 +91,12 @@ const AulaVirtual = () => {
             <ShieldAlert size={80} className="text-red-500" />
           </div>
           <div className="text-center space-y-4 mb-10">
-            <h1 className="text-4xl font-black uppercase text-white">Acceso Restringido</h1>
+            <h1 className="text-4xl font-black uppercase text-white">
+              Acceso Restringido
+            </h1>
             <p className="text-slate-400 font-bold text-sm uppercase tracking-widest max-w-md mx-auto leading-relaxed">
-              No estás matriculado en este curso o no tienes permisos de docente.
+              No estás matriculado en este curso o no tienes permisos de
+              docente.
             </p>
           </div>
           <button
@@ -105,7 +113,9 @@ const AulaVirtual = () => {
     return (
       <div className="h-screen w-full flex flex-col items-center justify-center gap-4 text-blue-600 bg-white">
         <Loader2 className="w-10 h-10 animate-spin" />
-        <p className="font-black uppercase tracking-widest text-[10px]">Iniciando entorno virtual...</p>
+        <p className="font-black uppercase tracking-widest text-[10px]">
+          Iniciando entorno virtual...
+        </p>
       </div>
     );
 
@@ -170,27 +180,48 @@ const AulaVirtual = () => {
         </div>
       </div>
 
-
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-10">
         <div className="bg-white p-8 rounded-[2.5rem] shadow-sm border border-slate-100 flex items-center gap-6">
-          <Avatar src={curso?.docente?.foto_perfil} type="perfil" className="w-20 h-20 rounded-3xl shadow-lg" />
+          <Avatar
+            src={curso?.docente?.foto_perfil}
+            type="perfil"
+            className="w-20 h-20 rounded-3xl shadow-lg"
+          />
           <div className="text-left">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Docente Titular</p>
-            <h3 className="text-xl font-black text-slate-800 uppercase leading-none">{curso?.docente ? `${curso.docente.nombre} ${curso.docente.apellido}` : "Sin asignar"}</h3>
-            <button onClick={() => modals.info.set(true)} className="mt-3 flex items-center gap-2 text-blue-600 font-bold text-[10px] hover:underline uppercase tracking-tighter">
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
+              Docente Titular
+            </p>
+            <h3 className="text-xl font-black text-slate-800 uppercase leading-none">
+              {curso?.docente
+                ? `${curso.docente.nombre} ${curso.docente.apellido}`
+                : "Sin asignar"}
+            </h3>
+            <button
+              onClick={() => modals.info.set(true)}
+              className="mt-3 flex items-center gap-2 text-blue-600 font-bold text-[10px] hover:underline uppercase tracking-tighter"
+            >
               <Info size={12} /> Detalles Académicos
             </button>
           </div>
         </div>
 
-        <button onClick={() => modals.users.set(true)} className="bg-white p-8 rounded-[2.5rem] border border-slate-100 flex items-center gap-6 hover:shadow-xl transition-all">
+        <button
+          onClick={() => modals.users.set(true)}
+          className="bg-white p-8 rounded-[2.5rem] border border-slate-100 flex items-center gap-6 hover:shadow-xl transition-all"
+        >
           <div className="w-20 h-20 rounded-3xl bg-slate-50 flex items-center justify-center text-slate-400 group-hover:bg-blue-600 group-hover:text-white transition-all">
             <Users size={32} />
           </div>
           <div className="text-left">
-            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">Comunidad</p>
-            <h3 className="text-lg font-black text-slate-800 uppercase leading-none">Participantes</h3>
-            <p className="text-blue-600 text-[10px] font-bold mt-1 uppercase">{integrantes.length} Alumnos Inscritos</p>
+            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest mb-1">
+              Comunidad
+            </p>
+            <h3 className="text-lg font-black text-slate-800 uppercase leading-none">
+              Participantes
+            </h3>
+            <p className="text-blue-600 text-[10px] font-bold mt-1 uppercase">
+              {integrantes.length} Alumnos Inscritos
+            </p>
           </div>
         </button>
       </div>
@@ -221,6 +252,7 @@ const AulaVirtual = () => {
               onUploadFile={openUploadModal}
               onEditUnidad={openUnidadModal}
               onEditTema={openTemaModal}
+              onPreview={openPreview}
               loading={loadingContenido}
             />
           </>
@@ -230,27 +262,40 @@ const AulaVirtual = () => {
       {/* ========================================== */}
       {/* MODALES DE ADMINISTRACIÓN (GLOBALES)      */}
       {/* ========================================== */}
-      
-      <ContenidoModal 
-        {...modal} 
-        form={form} 
-        setForm={setForm} 
-        loading={loadingAdmin} 
-        onClose={closeModal} 
-        onSubmit={handleSubmit} 
+
+      <ContenidoModal
+        {...modal}
+        form={form}
+        setForm={setForm}
+        loading={loadingAdmin}
+        onClose={closeModal}
+        onSubmit={handleSubmit}
+      />
+      <FilePreviewModal
+        isOpen={preview.isOpen}
+        file={preview.file}
+        onClose={() => setPreview({ isOpen: false, file: null })}
       />
 
-      <FileUploadModal 
-        {...fileModal} 
-        fileData={fileData} 
-        setFileData={setFileData} 
-        loading={loadingAdmin} 
-        onClose={closeUploadModal} 
-        onSubmit={handleFileSubmit} 
+      <FileUploadModal
+        {...fileModal}
+        fileData={fileData}
+        setFileData={setFileData}
+        loading={loadingAdmin}
+        onClose={closeUploadModal}
+        onSubmit={handleFileSubmit}
       />
 
-      <AulaIntegrantes isOpen={modals.users.isOpen} onClose={() => modals.users.set(false)} integrantes={integrantes} />
-      <AulaDetalle isOpen={modals.info.isOpen} onClose={() => modals.info.set(false)} curso={curso} />
+      <AulaIntegrantes
+        isOpen={modals.users.isOpen}
+        onClose={() => modals.users.set(false)}
+        integrantes={integrantes}
+      />
+      <AulaDetalle
+        isOpen={modals.info.isOpen}
+        onClose={() => modals.info.set(false)}
+        curso={curso}
+      />
     </div>
   );
 };

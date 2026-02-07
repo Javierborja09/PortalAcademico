@@ -1,6 +1,6 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import React from "react";
+import { Link } from "react-router-dom";
+import { ChevronRight } from "lucide-react";
 
 /**
  * Componente individual para los elementos de navegación del Sidebar.
@@ -31,8 +31,8 @@ const SidebarItem = ({ to, icon: Icon, label, isActive, onClick }) => {
       <ChevronRight
         size={14}
         className={`transition-all duration-300 ${
-          isActive 
-            ? "opacity-100 translate-x-0" 
+          isActive
+            ? "opacity-100 translate-x-0"
             : "opacity-0 -translate-x-2 group-hover:opacity-100 group-hover:translate-x-0"
         }`}
       />
