@@ -19,7 +19,7 @@ public interface CursoRepository extends JpaRepository<Curso, Integer> {
     // 2. Cursos del alumno que NO han finalizado
     @Query("SELECT m.curso FROM Matricula m JOIN m.curso c JOIN FETCH c.docente " +
            "WHERE m.alumno.id_usuario = :idAlumno " +
-           "AND c.fechaFin >= CURRENT_DATE")
+           "AND c.fechaFin >= CURRENT_DATE")  
     List<Curso> findCursosByAlumnoId(@Param("idAlumno") Integer idAlumno);
 
     // 3. Validación de matrícula     

@@ -4,7 +4,6 @@ import Avatar from "@/components/common/Avatar";
 const AulaBanner = ({ curso }) => {
   return (
     <div className="relative w-full h-56 md:h-80 lg:h-96 rounded-[2.5rem] md:rounded-[3.5rem] overflow-hidden shadow-2xl mb-8 md:mb-12 border-4 md:border-8 border-white group">
-      
       {/* USAMOS EL COMPONENTE GLOBAL AVATAR */}
       <Avatar
         src={curso?.imagenPortada}

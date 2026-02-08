@@ -1,18 +1,35 @@
-import axios from 'axios';
+import axios from "axios";
 
 const api = axios.create({
-    baseURL: 'http://localhost:8080/api',
+  baseURL: "http://localhost:8080/api",
 });
 
-// Interceptor para adjuntar el Token en cada petición automáticamente
-api.interceptors.request.use((config) => {
-    const token = localStorage.getItem('token');
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
     if (token) {
-        config.headers.Authorization = `Bearer ${token}`;
+      config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
-}, (error) => {
+  },
+  (error) => {
     return Promise.reject(error);
-});
+  },
+);
+
+api.interceptors.response.use(
+  (response) => {
+    return response;
+  },
+  (error) => {
+    if (error.response && error.response.status === 401) {
+      console.warn("Sesión expirada o inválida. Redirigiendo al login...");
+      localStorage.clear();
+      window.location.href = "/";
+    }
+
+    return Promise.reject(error);
+  },
+);
 
 export default api;

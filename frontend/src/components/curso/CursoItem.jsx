@@ -22,7 +22,6 @@ const CursoItem = ({ curso, rol, onRefresh }) => {
     <>
       {/* TARJETA PRINCIPAL - Quitamos shadow-sm por un borde más definido */}
       <div className="bg-white p-7 rounded-[2.5rem] border border-slate-200 hover:border-blue-400 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group relative overflow-hidden">
-        
         {/* BANNER */}
         <div className="relative w-full h-28 mb-6 overflow-hidden rounded-[1.5rem] bg-slate-100 border border-slate-200">
           <Avatar
@@ -31,7 +30,7 @@ const CursoItem = ({ curso, rol, onRefresh }) => {
             className="w-full h-full group-hover:scale-105 rounded-[1.5rem] border-none"
             alt={curso.nombreCurso}
           />
-          
+
           <div className="absolute top-3 left-3">
             <span className="text-[8px] font-black tracking-widest text-white bg-blue-600 px-2.5 py-1 rounded-lg uppercase">
               {curso.codigoCurso || "CURSO"}

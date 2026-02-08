@@ -3,10 +3,13 @@ import { useAuth } from "@/hooks/useAuth";
 
 const Login = () => {
   const {
-    correo, setCorreo,
-    password, setPassword,
-    error, isLoading,
-    handleLogin
+    correo,
+    setCorreo,
+    password,
+    setPassword,
+    error,
+    isLoading,
+    handleLogin,
   } = useAuth();
 
   return (
@@ -21,7 +24,9 @@ const Login = () => {
             <div className="inline-block p-4 rounded-2xl bg-blue-600 mb-4 shadow-lg shadow-blue-500/50">
               <span className="text-3xl">🎓</span>
             </div>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight">Bienvenido</h2>
+            <h2 className="text-3xl font-extrabold text-white tracking-tight">
+              Bienvenido
+            </h2>
             <p className="text-gray-400 mt-2">Ingresa al Portal Académico</p>
           </div>
 
