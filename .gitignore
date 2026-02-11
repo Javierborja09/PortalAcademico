@@ -34,3 +34,5 @@ uploads/courses/*
 uploads/profiles/*
 # Excepto el archivo default.webp
 !uploads/profiles/default.webp
+
+uploads/documents/*
