@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from "react";
-import { ArrowLeft, Loader2, BookOpen } from "lucide-react";
+import { ArrowLeft, Loader2, BookOpen, ClipboardList } from "lucide-react";
 import { useAulaVirtual } from "@/hooks/useAulaVirtual";
 import AulaBanner from "@/components/aula/AulaBanner";
 import AulaBannerSesion from "@/components/aula/AulaBannerSesion";
@@ -8,6 +8,7 @@ import AulaIntegrantes from "@/components/aula/AulaIntegrantes";
 import AulaDetalle from "@/components/aula/AulaDetalle";
 import AulaContenido from "@/components/aula/contenido/AulaContenido";
 import AulaContenidoAdmin from "@/components/aula/contenido/AulaContenidoAdmin";
+import AulaEvaluaciones from "@/components/aula/evaluacion/AulaEvaluaciones";
 import ContenidoService from "@/services/contenidoService";
 import { useContenidoAdmin } from "@/hooks/useContenidoAdmin";
 import AulaAccesoRestringido from "@/components/aula/AulaAccesoRestringido";
@@ -26,10 +27,12 @@ const AulaVirtual = () => {
     modals,
     handleBack,
     handleActionSesion,
+    usuario,
   } = useAulaVirtual();
 
   const [unidades, setUnidades] = useState([]);
   const [loadingContenido, setLoadingContenido] = useState(true);
+  const [vistaActual, setVistaActual] = useState("contenido");
 
   const [preview, setPreview] = useState({ isOpen: false, file: null });
 
@@ -113,42 +116,71 @@ const AulaVirtual = () => {
         onOpenUsers={() => modals.users.set(true)}
       />
 
-      {/* SECCIÓN DE CONTENIDO DINÁMICO */}
+      {/* TABS DE NAVEGACIÓN */}
+      <div className="flex gap-4 mb-6">
+        <button
+          onClick={() => setVistaActual("contenido")}
+          className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black uppercase text-xs transition-all ${vistaActual === "contenido"
+            ? "bg-blue-600 text-white shadow-lg"
+            : "bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+        >
+          <BookOpen size={16} />
+          Contenido
+        </button>
+        <button
+          onClick={() => setVistaActual("evaluaciones")}
+          className={`flex items-center gap-2 px-6 py-3 rounded-2xl font-black uppercase text-xs transition-all ${vistaActual === "evaluaciones"
+            ? "bg-blue-600 text-white shadow-lg"
+            : "bg-white text-slate-600 hover:bg-slate-50"
+            }`}
+        >
+          <ClipboardList size={16} />
+          Evaluaciones
+        </button>
+      </div>
+
+      {/* CONTENIDO DINÁMICO SEGÚN LA VISTA */}
       <div className="bg-white rounded-[3rem] border border-slate-100 p-6 md:p-10 shadow-sm relative">
-        {rol === "docente" ? (
-          <AulaContenidoAdmin
-            idCurso={curso?.id_curso}
-            unidades={unidades}
-            onRefresh={cargarContenido}
-            openUnidadModal={openUnidadModal}
-            openTemaModal={openTemaModal}
-            openUploadModal={openUploadModal}
-            handleDelete={handleDelete}
-          />
-        ) : (
-          <>
-            <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3 mb-8">
-              <BookOpen className="text-blue-600" /> Repositorio de Materiales
-            </h2>
-            <AulaContenido
+        {vistaActual === "contenido" ? (
+          rol === "docente" ? (
+            <AulaContenidoAdmin
               idCurso={curso?.id_curso}
               unidades={unidades}
-              rol={rol}
-              onDelete={handleDelete}
-              onUploadFile={openUploadModal}
-              onEditUnidad={openUnidadModal}
-              onEditTema={openTemaModal}
-              onPreview={openPreview}
-              loading={loadingContenido}
+              onRefresh={cargarContenido}
+              openUnidadModal={openUnidadModal}
+              openTemaModal={openTemaModal}
+              openUploadModal={openUploadModal}
+              handleDelete={handleDelete}
             />
-          </>
+          ) : (
+            <>
+              <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3 mb-8">
+                <BookOpen className="text-blue-600" /> Repositorio de Materiales
+              </h2>
+              <AulaContenido
+                idCurso={curso?.id_curso}
+                unidades={unidades}
+                rol={rol}
+                onDelete={handleDelete}
+                onUploadFile={openUploadModal}
+                onEditUnidad={openUnidadModal}
+                onEditTema={openTemaModal}
+                onPreview={openPreview}
+                loading={loadingContenido}
+              />
+            </>
+          )
+        ) : (
+          <AulaEvaluaciones
+            idCurso={curso?.id_curso}
+            idAlumno={usuario?.id_usuario}
+            rol={rol}
+          />
         )}
       </div>
 
-      {/* ========================================== */}
-      {/* MODALES DE ADMINISTRACIÓN (GLOBALES)      */}
-      {/* ========================================== */}
-
+      {/* MODALES DE ADMINISTRACIÓN (GLOBALES) */}
       <ContenidoModal
         {...modal}
         form={form}

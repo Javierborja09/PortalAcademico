@@ -41,6 +41,10 @@ public class SecurityConfig {
                         // 1. Recursos Estáticos (Imágenes y Documentos)
                         .requestMatchers("/*/**.png", "/*/**.jpg", "/*/**.jpeg", "/*/**.webp", "/*/**.pdf").permitAll()
                         .requestMatchers("/documents/**").permitAll()
+                        .requestMatchers("/submissions/**").permitAll()
+                        .requestMatchers("/exams/**").permitAll()
+                        
+                       
 
                         // 2. Autenticación
                         .requestMatchers("/api/auth/**").permitAll()
@@ -72,6 +76,18 @@ public class SecurityConfig {
                         .requestMatchers(HttpMethod.POST, "/api/contenido/**").hasAnyAuthority("docente", "admin")
                         .requestMatchers(HttpMethod.PUT, "/api/contenido/**").hasAnyAuthority("docente", "admin")
                         .requestMatchers(HttpMethod.DELETE, "/api/contenido/**").hasAnyAuthority("docente", "admin")
+
+                        // 8. EVALUACIONES 
+                        .requestMatchers(HttpMethod.GET, "/api/evaluaciones/**").authenticated() // Alumnos ven la tarea
+                        .requestMatchers(HttpMethod.POST, "/api/evaluaciones/**").hasAnyAuthority("docente", "admin")
+                        .requestMatchers(HttpMethod.PUT, "/api/evaluaciones/**").hasAnyAuthority("docente", "admin")
+                        .requestMatchers(HttpMethod.DELETE, "/api/evaluaciones/**").hasAnyAuthority("docente", "admin")
+
+                        // 9. ENTREGAS 
+                        .requestMatchers(HttpMethod.POST, "/api/entregas/enviar").hasAuthority("alumno") 
+                        .requestMatchers(HttpMethod.GET, "/api/entregas/evaluacion/*/mis-entregas/**").hasAuthority("alumno")
+                        .requestMatchers(HttpMethod.GET, "/api/entregas/evaluacion/*/todas").hasAnyAuthority("docente", "admin")
+                        .requestMatchers(HttpMethod.PUT, "/api/entregas/calificar/**").hasAnyAuthority("docente", "admin")
 
                         // Cualquier otra petición requiere login
                         .anyRequest().authenticated())

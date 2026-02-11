@@ -4,8 +4,11 @@ import java.util.List;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
+import org.springframework.stereotype.Repository;
+
 import com.cibertec.portal_academico.models.Anuncio;
 
+@Repository
 public interface AnuncioRepository extends JpaRepository<Anuncio, Integer> {
 
     @Query("SELECT a FROM Anuncio a " +

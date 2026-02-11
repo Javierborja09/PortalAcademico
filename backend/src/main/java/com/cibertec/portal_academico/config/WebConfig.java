@@ -19,6 +19,11 @@ public class WebConfig implements WebMvcConfigurer {
     @Value("${upload.path.documents}")
     private String documentDir;
 
+    @Value("${upload.path.exams}") 
+    private String examDir;
+
+    @Value("${upload.path.submissions}")
+    private String submissionDir;
 
     @Override
     public void addResourceHandlers(ResourceHandlerRegistry registry) {
@@ -28,6 +33,10 @@ public class WebConfig implements WebMvcConfigurer {
         registrarRuta(registry, courseDir);
         // Registro para Documentos
         registrarRuta(registry, documentDir);
+        // Registro para Evaluaciones
+        registrarRuta(registry, examDir);
+        // Registro para Entregas
+        registrarRuta(registry, submissionDir);
     }
 
     private void registrarRuta(ResourceHandlerRegistry registry, String dir) {
