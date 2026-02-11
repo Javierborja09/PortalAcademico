@@ -2,7 +2,7 @@
 
 <div align="center">
 
-![PortalAcademico](docs/logo.png)
+![PortalAcademico](docs/screenshots/academicicon.svg)
 
 [![Spring Boot](https://img.shields.io/badge/Spring%20Boot-3.x-brightgreen.svg?logo=spring)](https://spring.io/projects/spring-boot)
 [![React](https://img.shields.io/badge/React-18.x-61dafb.svg?logo=react)](https://reactjs.org/)
