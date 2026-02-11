@@ -34,3 +34,6 @@ uploads/courses/*
 uploads/profiles/*
 # Excepto el archivo default.webp
 !uploads/profiles/default.webp
+# --- Carpeta Documents ---
+# Ignorar todo el contenido de la carpeta documents
+uploads/documents/*

@@ -15,8 +15,6 @@ export const useAulaContenido = (idCurso) => {
             setLoading(true);
             const data = await ContenidoService.getTodoElContenido(idCurso);
             setUnidades(data);
-            
-            // Auto-expandir la primera unidad si es la primera carga
             if (data.length > 0 && Object.keys(expandedUnidades).length === 0) {
                 setExpandedUnidades({ [data[0].idUnidad]: true });
             }
@@ -38,7 +36,6 @@ export const useAulaContenido = (idCurso) => {
         }));
     };
 
-    // Nueva función integrada en el hook
     const toggleTema = (id) => {
         setExpandedTemas(prev => ({
             ...prev,
