@@ -35,7 +35,7 @@ public class Evaluacion {
     private String descripcionEvaluacion;
 
     @Column(name = "ruta_recurso")
-    private String rutaRecurso; // PDF o guías
+    private String rutaRecurso; 
 
     @Column(name = "fecha_limite", nullable = false)
     private LocalDateTime fechaLimite;

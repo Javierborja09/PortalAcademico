@@ -10,10 +10,8 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cibertec.portal_academico.dto.AnuncioDTO;
 import com.cibertec.portal_academico.models.Anuncio;
 import com.cibertec.portal_academico.models.Curso;
-import com.cibertec.portal_academico.models.Usuario;
 import com.cibertec.portal_academico.repositorios.AnuncioRepository;
 import com.cibertec.portal_academico.repositorios.CursoRepository;
-import com.cibertec.portal_academico.repositorios.UsuarioRepository;
 
 @Service
 public class AnuncioService {
@@ -23,9 +21,6 @@ public class AnuncioService {
 
     @Autowired
     private CursoRepository cursoRepository;
-
-    @Autowired
-    private UsuarioRepository usuarioRepository;
 
     public List<Anuncio> listarPorCurso(Integer idCurso, boolean esDocente) {
         return anuncioRepository.listarPorRol(idCurso, esDocente);

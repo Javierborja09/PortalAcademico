@@ -22,7 +22,7 @@ const EntregaModal = ({
   return (
     <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
       <div
-        className="absolute inset-0 bg-slate-950/40 backdrop-blur-md animate-fadeIn"
+        className="fixed inset-0 bg-slate-950/60 backdrop-blur-xl"
         onClick={onClose}
       />
 

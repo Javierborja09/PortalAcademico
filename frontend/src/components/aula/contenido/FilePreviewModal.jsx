@@ -1,8 +1,10 @@
 import React from "react";
 import { X, ExternalLink, Download, FileText, File } from "lucide-react";
 
+
 const FilePreviewModal = ({ isOpen, file, onClose }) => {
   if (!isOpen || !file) return null;
+  
 
   const getFileIcon = (filename = "") => {
     const ext = filename.toLowerCase();
@@ -15,12 +17,12 @@ const FilePreviewModal = ({ isOpen, file, onClose }) => {
 
   const isPdf = file.rutaArchivo.toLowerCase().endsWith(".pdf");
   const fullUrl = `http://localhost:8080${file.rutaArchivo}`;
-
+/*  */
   return (
     <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 md:p-8 animate-fadeIn">
       {/* Fondo oscuro con desenfoque */}
       <div
-        className="absolute inset-0 bg-slate-950/60 backdrop-blur-xl transition-opacity"
+        className="fixed inset-0 bg-slate-950/60 backdrop-blur-xl"
         onClick={onClose}
       />
 

@@ -103,20 +103,28 @@ public class EvaluacionService {
 
     private String subirArchivoFisico(MultipartFile archivo) {
         try {
-             if (archivo.isEmpty())
+            if (archivo.isEmpty())
                 throw new RuntimeException("Archivo vacío");
 
+            // 1. Crear nombre único: timestamp + nombre original (mismo estándar)
             String nombreOriginal = archivo.getOriginalFilename();
-            String nombreFinal = System.currentTimeMillis() + "_" + nombreOriginal.replaceAll("\\s+", "_");
+            String nombreFinal = System.currentTimeMillis() + "_" +
+                    (nombreOriginal != null ? nombreOriginal.replaceAll("\\s+", "_") : "archivo");
+
+            // 2. Resolver ruta absoluta del directorio configurado
             Path rutaPath = Paths.get(uploadDir).toAbsolutePath();
 
+            // 3. Crear directorios si no existen
             if (!Files.exists(rutaPath))
                 Files.createDirectories(rutaPath);
 
+            // 4. Guardar el archivo en el disco
             Path destino = rutaPath.resolve(nombreFinal);
             Files.copy(archivo.getInputStream(), destino, StandardCopyOption.REPLACE_EXISTING);
 
-            return "/" + rutaPath.getFileName().toString() + "/" + nombreFinal;
+            String folderName = rutaPath.getFileName().toString();
+            return "/" + folderName + "/" + nombreFinal;
+
         } catch (IOException e) {
             throw new RuntimeException("Error al guardar archivo de evaluación: " + e.getMessage());
         }
@@ -128,7 +136,7 @@ public class EvaluacionService {
             Path rutaCompleta = Paths.get(uploadDir).toAbsolutePath().resolve(nombreArchivo);
             Files.deleteIfExists(rutaCompleta);
         } catch (IOException e) {
-            System.err.println("Error al borrar archivo de evaluación: " + e.getMessage());
+            System.err.println("Error al borrar archivo físico: " + e.getMessage());
         }
     }
 }

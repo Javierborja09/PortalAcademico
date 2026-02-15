@@ -20,15 +20,15 @@ const EvaluacionModal = ({
   };
 
   return (
-    <div className="fixed inset-0 z-[150] flex items-center justify-center p-4">
+    <div className="fixed inset-0 z-[2000] flex items-center justify-center p-4 md:p-8 animate-fadeIn">
       <div
-        className="absolute inset-0 bg-slate-950/40 backdrop-blur-md animate-fadeIn"
+        className="fixed inset-0 bg-slate-950/60 backdrop-blur-xl"
         onClick={onClose}
       />
 
       <form
         onSubmit={onSubmit}
-        className="relative bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl animate-slideUp max-h-[90vh] overflow-y-auto"
+        className="relative bg-white w-full max-w-2xl rounded-[3rem] overflow-hidden shadow-2xl animate-slideUp max-h-[100vh] overflow-y-auto"
       >
         <header className="bg-slate-900 p-8 text-white flex justify-between items-center sticky top-0 z-10">
           <div>

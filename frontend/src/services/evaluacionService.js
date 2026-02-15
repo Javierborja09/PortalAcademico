@@ -1,19 +1,7 @@
 import api from '@/api/axiosConfig';
 
-export const getResourceUrl = (ruta) => {
-  if (!ruta) return null;
-  const BASE_URL = "http://localhost:8080";
-  const rutaLimpia = ruta.replace(/^\/+/, '');
-  
-  // Si la ruta ya trae el prefijo, no lo duplicamos
-  if (rutaLimpia.startsWith('exams/') || rutaLimpia.startsWith('submissions/')) {
-    return `${BASE_URL}/${rutaLimpia}`;
-  }
-  
-  // Por defecto, si no se puede determinar, intentamos inferir o devolver limpia
-  // Lo ideal es que el backend devuelva la ruta con el prefijo incluido.
-  return `${BASE_URL}/${rutaLimpia}`; 
-};
+
+
 const EvaluacionService = {
     // Listar evaluaciones
     listarPorCurso: async (idCurso) => {

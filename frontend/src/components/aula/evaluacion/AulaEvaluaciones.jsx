@@ -1,5 +1,5 @@
-import React from "react";
-import { Loader2, ClipboardList, Plus, X } from "lucide-react";
+import React, { useState } from "react";
+import { Loader2, ClipboardList, Plus, BookOpen } from "lucide-react";
 
 // Hooks
 import { useEvaluaciones } from "@/hooks/useEvaluaciones";
@@ -7,115 +7,108 @@ import { useEvaluacionAdmin } from "@/hooks/useEvaluacionesAdmin";
 import { useEntregaAdmin } from "@/hooks/useEntregasAdmin";
 
 // Componentes
-import EvaluacionCard from "./EvaluacionCard";
-import EvaluacionModal from "./EvaluacionModal";
-import EntregaModal from "../entrega/EntregaModal";
-import CalificacionModal from "../entrega/CalificacionModal";
-import VerEntregasModal from "../entrega/VerEntregasModal";
+import EvaluacionCard from "@/components/aula/evaluacion/EvaluacionCard";
+import EvaluacionModal from "@/components/aula/evaluacion/EvaluacionModal";
+import EntregaModal from "@/components/aula/entrega/EntregaModal";
+import CalificacionModal from "@/components/aula/entrega/CalificacionModal";
+import VerEntregasModal from "@/components/aula/entrega/VerEntregasModal";
+import FilePreviewModal from "@/components/aula/contenido/FilePreviewModal";
 
 const AulaEvaluaciones = ({ idCurso, idAlumno, rol }) => {
-  // Lógica de datos y utilidades
   const {
     evaluaciones,
     misEntregas,
     loading,
-    preview,
     alumnoIdReal,
     cargarDatos,
-    handlePreview,
-    closePreview,
     evaluacionExpirada,
     puedeEnviar
   } = useEvaluaciones(idCurso, idAlumno, rol);
 
-  // Hooks de administración (Modales y CRUD)
   const evAdmin = useEvaluacionAdmin(idCurso, cargarDatos);
   const enAdmin = useEntregaAdmin(alumnoIdReal, cargarDatos);
 
+  const [filePreview, setFilePreview] = useState({ isOpen: false, file: null });
+  
+  const handleOpenPreview = (ruta, titulo) => {
+    setFilePreview({
+      isOpen: true,
+      file: {
+        rutaArchivo: ruta,
+        tituloDocumento: titulo
+      }
+    });
+  };
+
+
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <Loader2 className="w-10 h-10 animate-spin text-blue-600" />
-        <p className="text-slate-400 font-bold text-sm uppercase tracking-widest">Cargando Actividades...</p>
+      <div className="py-20 flex flex-col items-center justify-center gap-3">
+        <Loader2 className="animate-spin text-blue-600 w-10 h-10" />
+        <p className="text-[10px] font-black uppercase text-slate-400 tracking-[0.2em]">Sincronizando Actividades...</p>
       </div>
     );
   }
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl md:text-2xl font-black text-slate-900 uppercase tracking-tight flex items-center gap-3">
-          <ClipboardList className="text-blue-600" size={28} />
-          Evaluaciones y Tareas
-        </h2>
+    <div className="space-y-6 animate-fadeIn pb-20">
+      {/* Header con botón Crear (Solo Docente) */}
+      <div className="flex justify-between items-center px-2">
+        <div className="flex items-center gap-3">
+          <div className="w-10 h-10 bg-slate-900 rounded-2xl flex items-center justify-center text-white shadow-lg">
+            <ClipboardList size={20} />
+          </div>
+          <div>
+            <h2 className="text-sm font-black uppercase text-slate-800 tracking-tight">Evaluaciones</h2>
+            <p className="text-[9px] font-bold text-slate-400 uppercase">Gestión de calificaciones y entregas</p>
+          </div>
+        </div>
+
         {rol === "docente" && (
           <button
             onClick={evAdmin.openCrear}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-2xl font-black uppercase text-xs flex items-center gap-2 transition-all shadow-lg active:scale-95 shadow-blue-200"
+            className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2.5 rounded-xl font-black text-[10px] uppercase transition-all shadow-md active:scale-95"
           >
-            <Plus size={16} /> Nueva Evaluación
+            <Plus size={14} /> Nueva Evaluación
           </button>
         )}
       </div>
 
       {/* Lista de Evaluaciones */}
-      {evaluaciones.length === 0 ? (
-        <div className="text-center py-20 bg-slate-50 rounded-[2.5rem] border-2 border-dashed border-slate-200">
-          <ClipboardList className="w-16 h-16 text-slate-300 mx-auto mb-4" />
-          <p className="text-slate-400 font-bold uppercase text-xs tracking-widest">No hay actividades registradas</p>
-        </div>
-      ) : (
-        <div className="grid gap-6">
-          {evaluaciones.map((evaluacion) => (
+      <div className="grid grid-cols-1 gap-4">
+        {evaluaciones.length > 0 ? (
+          evaluaciones.map((evaluacion) => (
             <EvaluacionCard
               key={evaluacion.id_evaluacion || evaluacion.idEvaluacion}
               evaluacion={evaluacion}
               rol={rol}
               entregas={misEntregas[evaluacion.id_evaluacion || evaluacion.idEvaluacion] || []}
-              onPreview={handlePreview}
-              onVerEntregas={enAdmin.openVerEntregas}
-              onEditar={evAdmin.openEditar}
-              onEliminar={evAdmin.eliminar}
-              onEnviar={enAdmin.openEnviar}
+              onPreview={handleOpenPreview}
+              onVerEntregas={() => enAdmin.openVerEntregas(evaluacion)}
+              onEditar={() => evAdmin.openEditar(evaluacion)}
+              onEliminar={() => evAdmin.eliminar(evaluacion.id_evaluacion || evaluacion.idEvaluacion)}
+              onEnviar={() => enAdmin.openEnviar(evaluacion)}
               evaluacionExpirada={evaluacionExpirada}
               puedeEnviar={puedeEnviar}
             />
-          ))}
-        </div>
-      )}
-
-      {/* --- MODALES --- */}
-
-      {/* Previsualización de PDF */}
-      {preview.isOpen && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center p-4 bg-slate-900/80 backdrop-blur-md">
-          <div className="bg-white w-full max-w-5xl h-[90vh] rounded-[2.5rem] overflow-hidden shadow-2xl flex flex-col">
-            <div className="p-6 border-b flex items-center justify-between">
-              <h3 className="text-sm font-black text-slate-900 uppercase truncate">{preview.titulo}</h3>
-              <button onClick={closePreview} className="p-2 hover:bg-red-50 text-slate-500 rounded-full transition-all">
-                <X size={20} />
-              </button>
-            </div>
-            <div className="flex-1 bg-slate-100 relative min-h-[500px]">
-              {preview.url && (
-                <iframe
-                  src={`${preview.url}#view=FitH`}
-                  title={preview.titulo}
-                  className="absolute inset-0 w-full h-full border-none bg-white"
-                  type="application/pdf"
-                />
-              )}
-              <div className="absolute inset-0 flex flex-col items-center justify-center -z-10">
-                <Loader2 className="animate-spin text-blue-600 mb-2" />
-                <p className="text-slate-400 text-[10px] font-black uppercase">Cargando visor...</p>
-              </div>
-            </div>
+          ))
+        ) : (
+          <div className="text-center py-20 bg-slate-50 rounded-[2rem] border-2 border-dashed border-slate-200">
+            <p className="text-xs font-bold text-slate-400 uppercase italic">No hay evaluaciones programadas</p>
           </div>
-        </div>
+        )}
+      </div>
+
+      {/* MODAL DE PREVISUALIZACIÓN (REUTILIZADO) */}
+      {filePreview.isOpen && (
+        <FilePreviewModal
+          isOpen={filePreview.isOpen}
+          file={filePreview.file}
+          onClose={() => setFilePreview({ isOpen: false, file: null })}
+        />
       )}
 
-      {/* Modales CRUD Evaluación */}
+      {/* Modales Administrativos */}
       {evAdmin.modal.isOpen && (
         <EvaluacionModal
           isOpen={true} type={evAdmin.modal.type} form={evAdmin.form}
@@ -124,7 +117,6 @@ const AulaEvaluaciones = ({ idCurso, idAlumno, rol }) => {
         />
       )}
 
-      {/* Modales Entregas y Calificaciones */}
       {enAdmin.modal.isOpen && (
         <>
           {enAdmin.modal.type === "enviar" && (
@@ -137,7 +129,8 @@ const AulaEvaluaciones = ({ idCurso, idAlumno, rol }) => {
           {enAdmin.modal.type === "ver-entregas" && (
             <VerEntregasModal
               isOpen={true} evaluacion={enAdmin.modal.data} onClose={enAdmin.closeModal}
-              onCalificar={enAdmin.openCalificar} onPreview={handlePreview}
+              onCalificar={enAdmin.openCalificar}
+              onPreview={(ruta, titulo) => handleOpenPreview(ruta, titulo)}
             />
           )}
           {enAdmin.modal.type === "calificar" && (

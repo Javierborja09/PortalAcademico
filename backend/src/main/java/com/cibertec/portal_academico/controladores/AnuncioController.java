@@ -1,9 +1,6 @@
 package com.cibertec.portal_academico.controladores;
 
-import java.time.LocalDate;
-
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.Authentication;
@@ -18,7 +15,7 @@ import com.cibertec.portal_academico.servicios.AnuncioService;
  */
 @RestController
 @RequestMapping("/api/anuncios")
-@CrossOrigin(origins = "*") // Permite peticiones desde cualquier origen (Frontend)
+@CrossOrigin(origins = "*") 
 public class AnuncioController {
 
     @Autowired

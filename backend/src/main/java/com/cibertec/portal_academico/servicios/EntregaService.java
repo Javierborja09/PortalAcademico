@@ -55,18 +55,18 @@ public class EntregaService {
 
     // EL ALUMNO: Ve solo sus entregas para una evaluación específica
     public List<EntregaDTO> obtenerMisEntregas(Integer idEval, Integer idAlumno) {
-       return entregaRepo.buscarPorEvaluacionYAlumno(idEval, idAlumno).stream()
-            .map(e -> new EntregaDTO(
-                    e.getId_entrega(),
-                    e.getAlumno().getNombre(),
-                    e.getAlumno().getApellido(),
-                    e.getContenidoTexto(),
-                    e.getRutaArchivo(),
-                    e.getNota(),
-                    e.getComentarioDocente(),
-                    e.getFechaEntrega(),
-                    e.getIntentoNumero()))
-            .collect(Collectors.toList());
+        return entregaRepo.buscarPorEvaluacionYAlumno(idEval, idAlumno).stream()
+                .map(e -> new EntregaDTO(
+                        e.getId_entrega(),
+                        e.getAlumno().getNombre(),
+                        e.getAlumno().getApellido(),
+                        e.getContenidoTexto(),
+                        e.getRutaArchivo(),
+                        e.getNota(),
+                        e.getComentarioDocente(),
+                        e.getFechaEntrega(),
+                        e.getIntentoNumero()))
+                .collect(Collectors.toList());
     }
 
     @Transactional
