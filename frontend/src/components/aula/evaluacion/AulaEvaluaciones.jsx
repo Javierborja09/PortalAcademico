@@ -1,5 +1,6 @@
-import React, { useState } from "react";
-import { Loader2, ClipboardList, Plus, BookOpen } from "lucide-react";
+import React, { useState, useEffect, useRef } from "react"; // Agregado useRef
+import { useLocation } from "react-router-dom";
+import { Loader2, ClipboardList, Plus } from "lucide-react";
 
 // Hooks
 import { useEvaluaciones } from "@/hooks/useEvaluaciones";
@@ -15,6 +16,11 @@ import VerEntregasModal from "@/components/aula/entrega/VerEntregasModal";
 import FilePreviewModal from "@/components/aula/contenido/FilePreviewModal";
 
 const AulaEvaluaciones = ({ idCurso, idAlumno, rol }) => {
+  const location = useLocation();
+  
+  // Este Ref evita que el modal intente abrirse más de una vez (previene el bucle infinito)
+  const haAbiertoAutomaticamente = useRef(false);
+
   const {
     evaluaciones,
     misEntregas,
@@ -30,6 +36,31 @@ const AulaEvaluaciones = ({ idCurso, idAlumno, rol }) => {
 
   const [filePreview, setFilePreview] = useState({ isOpen: false, file: null });
   
+  // --- LÓGICA DE AUTO-ABRIR SIN BUCLES ---
+  useEffect(() => {
+    const evalIdParaAbrir = location.state?.autoOpenEvalId;
+
+    // Solo actuar si hay un ID, si ya cargaron las evaluaciones y si aún no lo hemos hecho
+    if (evalIdParaAbrir && evaluaciones.length > 0 && !haAbiertoAutomaticamente.current) {
+      
+      const evaluacionEncontrada = evaluaciones.find(
+        (e) => (e.id_evaluacion || e.idEvaluacion) === evalIdParaAbrir
+      );
+
+      if (evaluacionEncontrada) {
+        // Bloqueamos futuras ejecuciones inmediatamente
+        haAbiertoAutomaticamente.current = true;
+        
+        // Abrimos el modal
+        enAdmin.openEnviar(evaluacionEncontrada);
+
+        // Limpiamos el rastro en el historial del navegador
+        window.history.replaceState({}, document.title);
+      }
+    }
+  }, [location.state, evaluaciones]); 
+  // No incluimos enAdmin aquí para evitar que cambios en el hook disparen el efecto de nuevo
+
   const handleOpenPreview = (ruta, titulo) => {
     setFilePreview({
       isOpen: true,
@@ -39,7 +70,6 @@ const AulaEvaluaciones = ({ idCurso, idAlumno, rol }) => {
       }
     });
   };
-
 
   if (loading) {
     return (
@@ -99,7 +129,7 @@ const AulaEvaluaciones = ({ idCurso, idAlumno, rol }) => {
         )}
       </div>
 
-      {/* MODAL DE PREVISUALIZACIÓN (REUTILIZADO) */}
+      {/* MODAL DE PREVISUALIZACIÓN */}
       {filePreview.isOpen && (
         <FilePreviewModal
           isOpen={filePreview.isOpen}

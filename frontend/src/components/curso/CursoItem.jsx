@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import {
   BookOpen,
   User,
@@ -7,6 +7,7 @@ import {
   Calendar,
   Info,
   Users,
+  Star, 
 } from "lucide-react";
 import { useCursoItem } from "@/hooks/useCursoItem";
 import CursoDetalle from "@/components/curso/CursoDetalle";
@@ -18,10 +19,38 @@ const CursoItem = ({ curso, rol, onRefresh }) => {
   const { modals, horarios, handleOpenDetails, handleIrAAulaVirtual } =
     useCursoItem(curso.id_curso);
 
+
+  const [isFav, setIsFav] = useState(false);
+
+  useEffect(() => {
+    const favs = JSON.parse(localStorage.getItem("fav_cursos")) || [];
+    setIsFav(favs.includes(curso.nombreCurso));
+  }, [curso.nombreCurso]);
+
+  const toggleFavorite = (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    
+    const favs = JSON.parse(localStorage.getItem("fav_cursos")) || [];
+    let newFavs;
+
+    if (favs.includes(curso.nombreCurso)) {
+      newFavs = favs.filter(nombre => nombre !== curso.nombreCurso);
+      setIsFav(false);
+    } else {
+      newFavs = [...favs, curso.nombreCurso];
+      setIsFav(true);
+    }
+    
+    localStorage.setItem("fav_cursos", JSON.stringify(newFavs));
+    window.dispatchEvent(new Event('storage'));
+  };
+  // ----------------------------
+
   return (
     <>
-      {/* TARJETA PRINCIPAL - Quitamos shadow-sm por un borde más definido */}
       <div className="bg-white p-7 rounded-[2.5rem] border border-slate-200 hover:border-blue-400 hover:-translate-y-1 transition-all duration-300 flex flex-col h-full group relative overflow-hidden">
+        
         {/* BANNER */}
         <div className="relative w-full h-28 mb-6 overflow-hidden rounded-[1.5rem] bg-slate-100 border border-slate-200">
           <Avatar
@@ -31,8 +60,20 @@ const CursoItem = ({ curso, rol, onRefresh }) => {
             alt={curso.nombreCurso}
           />
 
-          <div className="absolute top-3 left-3">
-            <span className="text-[8px] font-black tracking-widest text-white bg-blue-600 px-2.5 py-1 rounded-lg uppercase">
+          {/* seccion de favorito */}
+          <div className="absolute top-3 left-3 flex gap-2">
+            <button
+              onClick={toggleFavorite}
+              className={`p-2 backdrop-blur-md rounded-xl transition-all border border-white/10 ${
+                isFav 
+                ? "bg-amber-500 text-white shadow-lg shadow-amber-200/50" 
+                : "bg-slate-900/40 text-white/70 hover:bg-slate-900/60"
+              }`}
+            >
+              <Star size={16} fill={isFav ? "currentColor" : "none"} />
+            </button>
+            
+            <span className="text-[8px] font-black tracking-widest text-white bg-blue-600 px-2.5 py-1 rounded-lg uppercase flex items-center">
               {curso.codigoCurso || "CURSO"}
             </span>
           </div>
@@ -55,7 +96,7 @@ const CursoItem = ({ curso, rol, onRefresh }) => {
           </div>
         </div>
 
-        {/* INFO Y CUERPO */}
+        {/* cuerpo */}
         <div className="flex-1 relative z-10">
           <div className="flex items-center gap-1.5 text-slate-400 text-[10px] font-black uppercase tracking-widest mb-4">
             <Calendar size={12} /> <span>2026-I</span>
@@ -82,7 +123,7 @@ const CursoItem = ({ curso, rol, onRefresh }) => {
           </div>
         </div>
 
-        {/* ACCIÓN PRINCIPAL - SIN SOMBRAS (SHADOW REMOVED) */}
+        {/* la accion principal */}
         <div className="relative z-10">
           <button
             onClick={() =>
@@ -106,7 +147,7 @@ const CursoItem = ({ curso, rol, onRefresh }) => {
         </div>
       </div>
 
-      {/* MODALES */}
+      {/*modals */}
       <CursoDetalle
         isOpen={modals.details.isOpen}
         onClose={() => modals.details.set(false)}

@@ -5,6 +5,8 @@ import {
   Users,
   BookOpen,
   CalendarClock,
+  ClipboardList,
+  TrendingUp 
 } from "lucide-react";
 
 export const MENU_ITEMS = [
@@ -22,6 +24,18 @@ export const MENU_ITEMS = [
         label: "Mis Cursos",
         icon: BookOpen,
         roles: ["admin", "docente", "alumno"],
+      },
+      {
+        to: "/actividad",
+        label: "Actividad",
+        icon: ClipboardList,
+        roles: ["alumno"],
+      },
+      {
+        to: "/progreso", 
+        label: "Mi Progreso",
+        icon: TrendingUp, 
+        roles: ["alumno"],
       },
       {
         to: "/horario",

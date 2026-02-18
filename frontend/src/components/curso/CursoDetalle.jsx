@@ -4,6 +4,9 @@ import { useCursoDetalle } from "@/hooks/useCursoDetalle";
 import AnuncioAdmin from "@/components/anuncio/AnuncioAdmin";
 import AnuncioCard from "@/components/anuncio/AnuncioCard";
 import HorarioCard from "@/components/horario/HorarioCard";
+import { useLocation } from "react-router-dom";
+import { useEffect } from "react";
+
 
 const CursoDetalle = ({ isOpen, onClose, curso, horarios }) => {
   const {
@@ -84,15 +87,20 @@ const CursoDetalle = ({ isOpen, onClose, curso, horarios }) => {
                   </div>
                 ) : anuncios.length > 0 ? (
                   anuncios.map((anuncio) => (
-                    <AnuncioCard
-                      key={anuncio.id_anuncio}
-                      anuncio={anuncio}
-                      esDocente={esDocente}
-                      hoy={hoy}
-                      onEditar={abrirFormularioEditar}
-                      onEliminar={handleEliminarAnuncio}
-                    />
-                  ))
+    <div
+        key={anuncio.id_anuncio}
+        className="animate-fadeIn"
+    >
+        <AnuncioCard
+            anuncio={anuncio}
+            esDocente={esDocente}
+            hoy={hoy}
+            onEditar={abrirFormularioEditar}
+            onEliminar={handleEliminarAnuncio}
+        />
+    </div>
+))
+
                 ) : (
                   <div className="py-8 text-center border-2 border-dashed border-slate-100 rounded-[2rem]">
                     <p className="text-[10px] text-slate-400 italic uppercase font-bold tracking-widest">

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { useLocation } from "react-router-dom"; // Importamos useLocation
 import { ArrowLeft, Loader2, BookOpen, ClipboardList } from "lucide-react";
 import { useAulaVirtual } from "@/hooks/useAulaVirtual";
 import AulaBanner from "@/components/aula/AulaBanner";
@@ -17,6 +18,8 @@ import ContenidoModal from "@/components/aula/contenido/ContenidoModal";
 import FileUploadModal from "@/components/aula/contenido/FileUploadModal";
 
 const AulaVirtual = () => {
+  const location = useLocation(); // Inicializamos location
+  
   const {
     curso,
     integrantes,
@@ -32,7 +35,9 @@ const AulaVirtual = () => {
 
   const [unidades, setUnidades] = useState([]);
   const [loadingContenido, setLoadingContenido] = useState(true);
-  const [vistaActual, setVistaActual] = useState("contenido");
+  
+  // MODIFICACIÓN: Iniciamos la vista basándonos en el estado de la navegación
+  const [vistaActual, setVistaActual] = useState(location.state?.activeTab || "contenido");
 
   const [preview, setPreview] = useState({ isOpen: false, file: null });
 
@@ -55,6 +60,13 @@ const AulaVirtual = () => {
     handleFileSubmit,
     handleDelete,
   } = useContenidoAdmin(curso?.id_curso, () => cargarContenido());
+
+  // NUEVO: Efecto para forzar el cambio de pestaña si el usuario ya está en el componente
+  useEffect(() => {
+    if (location.state?.activeTab) {
+      setVistaActual(location.state.activeTab);
+    }
+  }, [location.state]);
 
   useEffect(() => {
     if (curso?.id_curso) {
@@ -180,40 +192,12 @@ const AulaVirtual = () => {
         )}
       </div>
 
-      {/* MODALES DE ADMINISTRACIÓN (GLOBALES) */}
-      <ContenidoModal
-        {...modal}
-        form={form}
-        setForm={setForm}
-        loading={loadingAdmin}
-        onClose={closeModal}
-        onSubmit={handleSubmit}
-      />
-      <FilePreviewModal
-        isOpen={preview.isOpen}
-        file={preview.file}
-        onClose={() => setPreview({ isOpen: false, file: null })}
-      />
-
-      <FileUploadModal
-        {...fileModal}
-        fileData={fileData}
-        setFileData={setFileData}
-        loading={loadingAdmin}
-        onClose={closeUploadModal}
-        onSubmit={handleFileSubmit}
-      />
-
-      <AulaIntegrantes
-        isOpen={modals.users.isOpen}
-        onClose={() => modals.users.set(false)}
-        integrantes={integrantes}
-      />
-      <AulaDetalle
-        isOpen={modals.info.isOpen}
-        onClose={() => modals.info.set(false)}
-        curso={curso}
-      />
+      {/* MODALES RESTANTES IGUALES... */}
+      <ContenidoModal {...modal} form={form} setForm={setForm} loading={loadingAdmin} onClose={closeModal} onSubmit={handleSubmit} />
+      <FilePreviewModal isOpen={preview.isOpen} file={preview.file} onClose={() => setPreview({ isOpen: false, file: null })} />
+      <FileUploadModal {...fileModal} fileData={fileData} setFileData={setFileData} loading={loadingAdmin} onClose={closeUploadModal} onSubmit={handleFileSubmit} />
+      <AulaIntegrantes isOpen={modals.users.isOpen} onClose={() => modals.users.set(false)} integrantes={integrantes} />
+      <AulaDetalle isOpen={modals.info.isOpen} onClose={() => modals.info.set(false)} curso={curso} />
     </div>
   );
 };

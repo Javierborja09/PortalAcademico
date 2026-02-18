@@ -15,6 +15,9 @@ import RoleRoute from "@/components/RoleRoute";
 import AulaVirtual from "@/pages/general/AulaVirtual";
 import AulaSesion from "@/pages/general/AulaSesion";
 import Horario from "@/pages/general/Horario";
+import Actividad from "@/pages/general/Actividad";
+import Progreso from "@/pages/general/Progreso";
+
 function App() {
   return (
     <Router>
@@ -26,7 +29,8 @@ function App() {
 
         {/* RUTAS PROTEGIDAS */}
         <Route element={<ProtectedRoute />}>
-          {/* 🟢 RUTA DE SESIÓN (FUERA DEL LAYOUT PARA PANTALLA COMPLETA) */}
+          
+          {/* 🟢 RUTA DE SESIÓN (PANTALLA COMPLETA, SIN SIDEBAR) */}
           <Route path="/aula-virtual/:id/sesion" element={<AulaSesion />} />
 
           {/* RUTAS CON BARRA LATERAL (MAINLAYOUT) */}
@@ -36,17 +40,26 @@ function App() {
             <Route path="/cursos" element={<Cursos />} />
             <Route path="/horario" element={<Horario />} />
             <Route path="/aula-virtual/:id" element={<AulaVirtual />} />
+            
+            {/* Ahora tendrá acceso al Sidebar y estará protegido */}
+            <Route path="/actividad" element={<Actividad />} />
 
+            <Route path="/progreso" element={<Progreso />} />
+
+            {/* RUTAS SOLO PARA ADMIN */}
             <Route element={<RoleRoute allowedRoles={["admin"]} />}>
               <Route path="/admin/usuarios" element={<Usuarios />} />
               <Route path="/admin/horarios" element={<Horarios />} />
             </Route>
           </Route>
+
         </Route>
 
+        {/* NOT FOUND */}
         <Route path="*" element={<NotFound />} />
       </Routes>
     </Router>
   );
 }
+
 export default App;
