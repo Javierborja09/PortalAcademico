@@ -1,16 +1,16 @@
-# Compiled class file
+# ==========================================
+# Archivos de Compilación y Logs
+# ==========================================
 *.class
-
-# Log file
 *.log
-
-# BlueJ files
 *.ctxt
-
-# Mobile Tools for Java (J2ME)
 .mtj.tmp/
+hs_err_pid*
+replay_pid*
 
-# Package Files #
+# ==========================================
+# Archivos Comprimidos y Paquetes
+# ==========================================
 *.jar
 *.war
 *.nar
@@ -19,6 +19,21 @@
 *.tar.gz
 *.rar
 
-# virtual machine crash logs, see http://www.java.com/en/download/help/error_hotspot.xml
-hs_err_pid*
-replay_pid*
+# ==========================================
+# Gestión de Uploads (Imágenes)
+# ==========================================
+
+# --- Carpeta Courses ---
+# Ignorar todo el contenido de la carpeta courses
+uploads/courses/*
+# Excepto el archivo default.webp
+!uploads/courses/default.webp
+
+# --- Carpeta Profiles ---
+# Ignorar todo el contenido de la carpeta profiles
+uploads/profiles/*
+# Excepto el archivo default.webp
+!uploads/profiles/default.webp
+# --- Carpeta Documents ---
+# Ignorar todo el contenido de la carpeta documents
+uploads/documents/*
